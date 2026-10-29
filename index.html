@@ -1,0 +1,1552 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111016">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ensaio">
+<title>Ensaio do Coro</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111016'/%3E%3Cpath d='M26 44V18l20-4v26' fill='none' stroke='%23E7B95E' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='44' r='6' fill='%23E7B95E'/%3E%3Ccircle cx='40' cy='40' r='6' fill='%23E7B95E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#111016; --surface:#1B1A22; --surface2:#25242E; --hover:#211F29; --line:#2F2E3A; --line2:#3C3A48;
+  --text:#F3EFE7; --muted:#A8A3B3; --faint:#736F7E;
+  --accent:#E7B95E; --ink:#1B1406; --accent-soft:rgba(231,185,94,.13); --accent-line:rgba(231,185,94,.32);
+  --danger:#E57373;
+  --r:18px;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --serif:'Fraunces',Georgia,'Times New Roman',serif;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.45;min-height:100vh;min-height:100dvh;padding-bottom:calc(140px + var(--sab));-webkit-font-smoothing:antialiased}
+body.noscroll{overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;cursor:pointer}
+button:disabled{cursor:default}
+input{font:inherit;color:inherit}
+svg{width:22px;height:22px;flex:none}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Topo */
+.top{position:sticky;top:0;z-index:20;background:rgba(17,16,22,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:border-color .2s}
+.top.scrolled{border-bottom-color:var(--line)}
+.top-in{max-width:792px;margin:0 auto;display:flex;align-items:center;gap:4px;padding:calc(var(--sat) + 10px) 10px 12px}
+.titles{flex:1;min-width:0;padding:0 8px}
+.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top h1{margin:2px 0 0;font-family:var(--serif);font-weight:600;font-size:26px;line-height:1.15;letter-spacing:-.01em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.icon-btn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:var(--text);flex:none;transition:background .15s}
+.icon-btn:hover{background:var(--surface2)}
+.icon-btn:active{background:var(--line)}
+.icon-btn:disabled{opacity:.35}
+.icon-btn.sm{width:36px;height:36px}
+.icon-btn.sm svg{width:19px;height:19px}
+.pill{font-size:11px;font-weight:700;letter-spacing:.04em;padding:3px 9px;border-radius:99px;background:rgba(229,115,115,.14);color:var(--danger);flex:none}
+
+main{max-width:792px;margin:0 auto;padding:6px 16px 0}
+
+/* Listas */
+.sec-label{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:20px 4px 10px}
+.sec-label:first-child{margin-top:8px}
+.list{display:flex;flex-direction:column;gap:10px}
+.card{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;transition:background .15s,border-color .15s,transform .1s}
+.card:hover{border-color:var(--line2);background:var(--hover)}
+.card:active{transform:scale(.99)}
+.cal{width:54px;height:58px;border-radius:14px;background:var(--accent-soft);color:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none}
+.cal .d{font-family:var(--serif);font-size:25px;font-weight:600;line-height:1}
+.cal .m{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.card.past .cal{background:var(--surface2);color:var(--muted)}
+.card .info{flex:1;min-width:0}
+.card .t{font-weight:600;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .s{color:var(--muted);font-size:13.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{color:var(--faint);display:flex}
+
+.songs{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-top:8px}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:15px 14px;border-bottom:1px solid var(--line);transition:background .15s}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--hover)}
+.num{width:28px;text-align:center;font-family:var(--serif);font-size:18px;color:var(--faint);flex:none;font-variant-numeric:tabular-nums}
+.row .t{flex:1;min-width:0;font-weight:500;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row.loaded .t{color:var(--accent)}
+.badges{display:flex;gap:4px;flex:none}
+.b{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.05em;padding:3px 6px;border-radius:6px;color:var(--faint);border:1px solid var(--line)}
+.b.on{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.eq{display:none;width:28px;height:16px;align-items:flex-end;justify-content:center;gap:2px;flex:none}
+.eq i{width:3px;height:6px;background:var(--accent);border-radius:2px;animation:eq 1s ease-in-out infinite;animation-play-state:paused}
+.eq i:nth-child(2){animation-delay:-.45s}
+.eq i:nth-child(3){animation-delay:-.75s}
+.row.loaded .num{display:none}
+.row.loaded .eq{display:flex}
+.row.playing .eq i{animation-play-state:running}
+@keyframes eq{0%,100%{height:4px}50%{height:15px}}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .ic{width:66px;height:66px;border-radius:20px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin:0 auto 18px}
+.empty .ic svg{width:30px;height:30px}
+.empty h2{font-family:var(--serif);font-weight:600;color:var(--text);font-size:21px;margin:0 0 6px}
+.empty p{margin:0 auto;font-size:15px;max-width:340px}
+
+/* Música */
+.player{background:linear-gradient(180deg,#23202B,var(--surface));border:1px solid var(--line);border-radius:22px;padding:24px 18px 16px;margin-top:8px}
+.transport{display:flex;align-items:center;justify-content:center;gap:28px}
+.tbtn{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:var(--text);background:var(--surface2);transition:background .15s,transform .1s}
+.tbtn:hover{background:var(--line)}
+.tbtn:active{transform:scale(.94)}
+.tbtn svg{width:25px;height:25px}
+.tbtn.sm{width:44px;height:44px}
+.tbtn.sm svg{width:22px;height:22px}
+.play-big{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:var(--ink);box-shadow:0 12px 32px -10px rgba(231,185,94,.6);transition:transform .1s}
+.play-big svg{width:34px;height:34px}
+.play-big:active{transform:scale(.95)}
+.play-big .spin{width:28px;height:28px;border-width:3px}
+.seekrow{display:flex;align-items:center;gap:10px;margin-top:22px}
+.time{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:40px}
+.time.r{text-align:right}
+.status{min-height:18px;text-align:center;font-size:13px;color:var(--muted);margin-top:6px}
+.noaudio{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--muted);font-size:14.5px;flex-wrap:wrap;padding:8px 0}
+.noaudio svg{color:var(--faint)}
+
+.block{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:14px}
+.block h2{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);font-weight:600;margin:0 0 10px}
+.block h2 span{letter-spacing:0;text-transform:none;font-weight:500}
+.ch{display:flex;align-items:center;gap:14px;padding:8px 0}
+.ch + .ch{border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+.ch-tg{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:none;position:relative;transition:background .15s,color .15s}
+.ch-tg.muted{background:var(--surface2);color:var(--faint)}
+.ch-tg.muted::after{content:"";position:absolute;width:28px;height:2px;background:currentColor;transform:rotate(-45deg);border-radius:2px}
+.ch-body{flex:1;min-width:0}
+.ch-label{display:flex;justify-content:space-between;align-items:baseline;font-size:15px;font-weight:600}
+.ch-val{font-weight:500;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.ch.na .ch-tg{background:var(--surface2);color:var(--faint);opacity:.6}
+.ch-na{font-size:13px;color:var(--faint);margin-top:2px}
+
+.score-open{display:block;width:100%;position:relative;border-radius:14px;overflow:hidden;background:#0B0A0F;padding:18px 18px 0;height:300px;text-align:center}
+.thumb{display:block;margin:0 auto;background:#fff;border-radius:3px 3px 0 0;box-shadow:0 10px 34px rgba(0,0,0,.5)}
+.score-open::after{content:"";position:absolute;left:0;right:0;bottom:0;height:130px;background:linear-gradient(rgba(11,10,15,0),rgba(11,10,15,.96));pointer-events:none}
+.score-cta{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1;display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--ink);font-weight:600;font-size:15px;padding:12px 20px;border-radius:99px;white-space:nowrap;box-shadow:0 10px 24px -8px rgba(0,0,0,.6)}
+.score-cta svg{width:18px;height:18px}
+.thumb-ph{height:100%;display:grid;place-items:center;color:var(--faint);font-size:14px}
+.foot-actions{display:flex;justify-content:center;gap:10px;margin:22px 0 6px}
+
+/* Controles */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0;--p:0%;cursor:pointer;touch-action:pan-y}
+input[type=range]:disabled{opacity:.4;cursor:default}
+input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:linear-gradient(to right,var(--accent) var(--p),var(--line2) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--text);margin-top:-6.5px;box-shadow:0 0 0 5px rgba(231,185,94,.22)}
+input[type=range]::-moz-range-track{height:5px;border-radius:5px;background:var(--line2)}
+input[type=range]::-moz-range-progress{height:5px;border-radius:5px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:var(--text)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:46px;padding:0 18px;border-radius:12px;font-weight:600;font-size:15px;transition:background .15s,opacity .15s;white-space:nowrap}
+.btn svg{width:18px;height:18px}
+.btn.primary{background:var(--accent);color:var(--ink)}
+.btn.ghost{background:var(--surface2);color:var(--text)}
+.btn.ghost:hover{background:var(--line)}
+.btn.danger{color:var(--danger)}
+.btn.danger-fill{background:var(--danger);color:#1E0B0B}
+.btn.sm{height:38px;padding:0 13px;font-size:14px;border-radius:10px}
+.btn.wide{width:100%;margin-top:6px}
+.btn:disabled{opacity:.5}
+.link{color:var(--accent);font-weight:600}
+
+.fab{position:fixed;right:max(16px,calc(50% - 380px));bottom:calc(20px + var(--sab));z-index:30;height:56px;padding:0 22px 0 18px;border-radius:18px;background:var(--accent);color:var(--ink);display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;box-shadow:0 14px 32px -10px rgba(231,185,94,.55);transition:bottom .25s,transform .1s}
+.fab:active{transform:scale(.97)}
+body.has-mini .fab{bottom:calc(98px + var(--sab))}
+
+.mini{position:fixed;left:12px;right:12px;bottom:calc(12px + var(--sab));z-index:30;max-width:768px;margin:0 auto;background:rgba(37,36,46,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line2);border-radius:18px;display:flex;align-items:center;gap:8px;padding:9px 9px 11px 10px;box-shadow:0 18px 40px -12px rgba(0,0,0,.75);overflow:hidden}
+.mini-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;text-align:left}
+.mini-ic{width:42px;height:42px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.mini-tx{min-width:0;display:flex;flex-direction:column}
+.mini-t{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini .p-play{width:46px;height:46px;border-radius:50%;background:var(--accent);color:var(--ink);display:grid;place-items:center;flex:none}
+.mini-bar{position:absolute;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.06)}
+.mini-bar i{display:block;height:100%;width:0;background:var(--accent)}
+
+/* Folha (formulários) */
+.backdrop{position:fixed;inset:0;z-index:60;background:rgba(5,4,8,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+.sheet{width:100%;max-width:560px;max-height:92vh;max-height:92dvh;overflow:auto;background:var(--surface);border:1px solid var(--line2);border-bottom:0;border-radius:24px 24px 0 0;padding:10px 18px calc(18px + var(--sab));animation:up .28s cubic-bezier(.2,.8,.2,1)}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line2);margin:0 auto 16px}
+.sheet h3{font-family:var(--serif);font-weight:600;font-size:22px;margin:0 0 16px}
+@media (min-width:700px){.backdrop{align-items:center;padding:20px}.sheet{border-radius:24px;border-bottom:1px solid var(--line2);padding:22px 22px 20px}.grab{display:none}}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+@keyframes fade{from{opacity:0}}
+.fld{display:block;margin-bottom:14px;min-width:0}
+.fld>span{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.fld input{display:block;width:100%;min-width:0;height:48px;border-radius:12px;border:1px solid var(--line2);background:var(--bg);padding:0 14px;font-size:16px;outline:none;-webkit-appearance:none;appearance:none}
+.fld input:focus{border-color:var(--accent)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:10px;align-items:center;margin-top:20px}
+.actions .sp{flex:1}
+.slot{display:flex;align-items:center;gap:12px;padding:12px;border:1px dashed var(--line2);border-radius:14px;margin-bottom:10px}
+.slot.has{border-style:solid;background:rgba(255,255,255,.02)}
+.slot-ic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--surface2);color:var(--muted);flex:none}
+.slot.has .slot-ic{background:var(--accent-soft);color:var(--accent)}
+.slot.rm .slot-ic{background:rgba(229,115,115,.12);color:var(--danger)}
+.slot-info{flex:1;min-width:0}
+.slot-t{font-weight:600;font-size:15px}
+.slot-s{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot.rm .slot-s{color:var(--danger)}
+.slot label.btn{cursor:pointer}
+.hint{font-size:12.5px;color:var(--faint);margin:2px 2px 0}
+.ask-msg{color:var(--muted);font-size:15px;margin:0}
+.set-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.set-row>div{flex:1;min-width:0}
+.set-t{font-weight:600;font-size:15px}
+.set-s{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+
+/* Conexão */
+.cfg{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:8px}
+.step{display:flex;gap:12px;margin-bottom:18px}
+.step>div{min-width:0;flex:1}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:13px;display:grid;place-items:center;flex:none;margin-top:1px}
+.step p{margin:0;color:var(--muted);font-size:14.5px}
+.step b{color:var(--text);font-weight:600}
+pre.sql{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;font-size:11px;line-height:1.5;max-height:170px;overflow:auto;color:#CFC9D9;margin:12px 0 10px;white-space:pre}
+.note{font-size:13px;color:var(--faint);margin:14px 0 0}
+.err-box{background:rgba(229,115,115,.1);border:1px solid rgba(229,115,115,.32);color:#F2B8B8;border-radius:12px;padding:11px 13px;font-size:14px;margin:4px 0 12px}
+
+/* Visualizador da partitura */
+.viewer{position:fixed;inset:0;z-index:50;background:#08070B}
+.v-pages{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:calc(var(--sat) + 62px) 8px calc(var(--sab) + 160px)}
+.v-page{position:relative;margin:0 auto 12px;background:#fff;box-shadow:0 4px 26px rgba(0,0,0,.55)}
+.v-page canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.v-loading{height:70vh;display:flex;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:15px}
+.v-top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;gap:2px;padding:calc(var(--sat) + 8px) 8px 28px;background:linear-gradient(rgba(8,7,11,.94),rgba(8,7,11,0));transition:opacity .25s,transform .25s}
+.v-title{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+.v-pg{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;padding:0 6px;white-space:nowrap}
+.v-bot{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:8px 14px calc(var(--sab) + 12px);background:rgba(22,21,28,.95);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);transition:opacity .25s,transform .25s}
+.v-bot-in{max-width:768px;margin:0 auto}
+.v-bot .seekrow{margin-top:0}
+.v-ctrl{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-top:4px}
+.v-chips{display:flex;gap:6px;min-width:0}
+.v-trans{display:flex;align-items:center;gap:12px}
+.v-play{width:58px;height:58px;border-radius:50%;background:var(--accent);color:var(--ink);display:grid;place-items:center;transition:transform .1s}
+.v-play:active{transform:scale(.95)}
+.v-play svg{width:26px;height:26px}
+.chip{height:32px;padding:0 9px;border-radius:10px;font-size:11.5px;font-weight:700;letter-spacing:.04em;display:inline-flex;align-items:center;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);transition:all .15s}
+.chip.muted{background:transparent;color:var(--faint);border-color:var(--line2);text-decoration:line-through}
+.chip:disabled{opacity:.25;text-decoration:none}
+.viewer.hide-ui .v-top{opacity:0;transform:translateY(-100%);pointer-events:none}
+.viewer.hide-ui .v-bot{opacity:0;transform:translateY(100%);pointer-events:none}
+
+.spin{width:20px;height:20px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:rot .8s linear infinite;display:inline-block;flex:none}
+@keyframes rot{to{transform:rotate(360deg)}}
+.busy{position:fixed;inset:0;z-index:80;background:rgba(5,4,8,.55);display:grid;place-items:center;padding:20px}
+.busy-card{background:var(--surface2);border:1px solid var(--line2);border-radius:16px;padding:18px 22px;display:flex;align-items:center;gap:14px;font-weight:500}
+.busy-card .spin{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(110px + var(--sab));transform:translate(-50%,16px);opacity:0;z-index:90;background:#2E2C38;border:1px solid var(--line2);padding:11px 16px;border-radius:12px;font-size:14px;font-weight:500;transition:opacity .25s,transform .25s;pointer-events:none;max-width:calc(100% - 32px);width:max-content;text-align:center;box-shadow:0 12px 30px -10px rgba(0,0,0,.6)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:#3A2226;border-color:#5C3138}
+
+@media (max-width:380px){
+  .top h1{font-size:23px}
+  .transport{gap:20px}
+  .v-trans{gap:8px}
+  .tbtn.sm{width:40px;height:40px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<header class="top" id="top">
+  <div class="top-in">
+    <button class="icon-btn" id="btnBack" aria-label="Voltar" data-i="back" hidden></button>
+    <div class="titles">
+      <div class="eyebrow" id="eyebrow">Ensaio do Coro</div>
+      <h1 id="title">Apresentações</h1>
+    </div>
+    <span class="pill" id="offPill" hidden>OFFLINE</span>
+    <button class="icon-btn" id="btnAct" hidden></button>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<button class="fab" id="fab" data-i="plus" hidden><span id="fabLabel"></span></button>
+
+<div class="mini pctl" id="mini" hidden>
+  <button class="mini-main" data-act="open-current" aria-label="Abrir música que está tocando">
+    <span class="mini-ic" data-i="note"></span>
+    <span class="mini-tx"><span class="mini-t"></span><span class="mini-s"></span></span>
+  </button>
+  <button class="p-play" data-act="toggle" aria-label="Tocar"></button>
+  <span class="mini-bar"><i class="p-bar"></i></span>
+</div>
+
+<div class="viewer" id="viewer" hidden>
+  <div class="v-pages" id="vPages"></div>
+  <div class="v-top">
+    <button class="icon-btn" data-act="vclose" data-i="close" aria-label="Fechar partitura"></button>
+    <div class="v-title" id="vTitle"></div>
+    <span class="v-pg" id="vPg"></span>
+    <button class="icon-btn" id="vZoomOut" data-act="vzout" data-i="zout" aria-label="Diminuir zoom"></button>
+    <button class="icon-btn" id="vZoomIn" data-act="vzin" data-i="zin" aria-label="Aumentar zoom"></button>
+    <button class="icon-btn" id="vFs" data-act="vfs" aria-label="Tela cheia"></button>
+  </div>
+  <div class="v-bot pctl" id="vBot">
+    <div class="v-bot-in">
+      <div class="seekrow">
+        <span class="time p-cur">0:00</span>
+        <input type="range" class="p-seek" min="0" max="1000" step="1" value="0" aria-label="Andamento da música">
+        <span class="time r p-dur">--:--</span>
+      </div>
+      <div class="v-ctrl">
+        <div class="v-chips">
+          <button class="chip" data-act="mute" data-k="bg" aria-label="Ligar ou silenciar o BG">BG</button>
+          <button class="chip" data-act="mute" data-k="voz" aria-label="Ligar ou silenciar a voz">VOZ</button>
+        </div>
+        <div class="v-trans">
+          <button class="tbtn sm" data-act="rew" data-i="rew5" aria-label="Voltar 5 segundos"></button>
+          <button class="v-play p-play" data-act="toggle" aria-label="Tocar"></button>
+          <button class="tbtn sm" data-act="fwd" data-i="fwd5" aria-label="Avançar 5 segundos"></button>
+        </div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="busy" id="busy" hidden><div class="busy-card"><span class="spin"></span><span id="busyMsg"></span></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- Constantes ---------- */
+const BUCKET = 'coro';
+const T_AP = 'coro_apresentacoes';
+const T_MU = 'coro_musicas';
+const LS_CFG = 'coro.cfg', LS_CACHE = 'coro.cache', LS_MIX = 'coro.mix.';
+const MAX_MB = 50;
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const LABEL = { bg: 'Base (BG)', voz: 'Minha voz', pdf: 'Partitura' };
+const ZOOMS = [1, 1.25, 1.5, 2, 2.5, 3];
+
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+const SQL = `-- Ensaio do Coro: estrutura no Supabase
+-- Rode uma vez no SQL Editor do projeto.
+-- O acesso fica liberado para quem tiver a chave pública do projeto.
+
+create table if not exists public.coro_apresentacoes (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  data date,
+  local text,
+  criado_em timestamptz not null default now()
+);
+
+create table if not exists public.coro_musicas (
+  id uuid primary key default gen_random_uuid(),
+  apresentacao_id uuid not null references public.coro_apresentacoes(id) on delete cascade,
+  titulo text not null,
+  bg_path text,
+  voz_path text,
+  pdf_path text,
+  criado_em timestamptz not null default now()
+);
+
+create index if not exists coro_musicas_apresentacao_idx
+  on public.coro_musicas (apresentacao_id);
+
+alter table public.coro_apresentacoes enable row level security;
+alter table public.coro_musicas enable row level security;
+
+grant select, insert, update, delete on public.coro_apresentacoes to anon, authenticated;
+grant select, insert, update, delete on public.coro_musicas to anon, authenticated;
+
+drop policy if exists coro_apresentacoes_acesso on public.coro_apresentacoes;
+create policy coro_apresentacoes_acesso on public.coro_apresentacoes
+  for all to anon, authenticated using (true) with check (true);
+
+drop policy if exists coro_musicas_acesso on public.coro_musicas;
+create policy coro_musicas_acesso on public.coro_musicas
+  for all to anon, authenticated using (true) with check (true);
+
+-- Bucket privado para MP3 e PDF (até 50 MB por arquivo)
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('coro', 'coro', false, 52428800)
+on conflict (id) do nothing;
+
+drop policy if exists coro_arquivos_ler on storage.objects;
+create policy coro_arquivos_ler on storage.objects
+  for select to anon, authenticated using (bucket_id = 'coro');
+
+drop policy if exists coro_arquivos_enviar on storage.objects;
+create policy coro_arquivos_enviar on storage.objects
+  for insert to anon, authenticated with check (bucket_id = 'coro');
+
+drop policy if exists coro_arquivos_alterar on storage.objects;
+create policy coro_arquivos_alterar on storage.objects
+  for update to anon, authenticated
+  using (bucket_id = 'coro') with check (bucket_id = 'coro');
+
+drop policy if exists coro_arquivos_apagar on storage.objects;
+create policy coro_arquivos_apagar on storage.objects
+  for delete to anon, authenticated using (bucket_id = 'coro');
+`;
+
+/* ---------- Ícones ---------- */
+const ICONS = {
+  back: '<path d="M15 18l-6-6 6-6"/>',
+  chev: '<path d="M9 6l6 6-6 6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  sliders: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  edit: '<path d="M4 20h4L19 9a2.83 2.83 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/>',
+  play: '<path d="M8 5.6v12.8a1 1 0 0 0 1.52.85l10.2-6.4a1 1 0 0 0 0-1.7L9.52 4.75A1 1 0 0 0 8 5.6z" fill="currentColor" stroke="none"/>',
+  pause: '<rect x="6.5" y="5" width="4" height="14" rx="1.3" fill="currentColor" stroke="none"/><rect x="13.5" y="5" width="4" height="14" rx="1.3" fill="currentColor" stroke="none"/>',
+  rew5: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><text x="12" y="15.6" text-anchor="middle" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" font-family="Inter,system-ui,sans-serif">5</text>',
+  fwd5: '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><text x="12" y="15.6" text-anchor="middle" font-size="8.5" font-weight="700" fill="currentColor" stroke="none" font-family="Inter,system-ui,sans-serif">5</text>',
+  close: '<path d="M6 6l12 12M18 6L6 18"/>',
+  zin: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5M11 8v6M8 11h6"/>',
+  zout: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5M8 11h6"/>',
+  expand: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+  shrink: '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>',
+  note: '<path d="M9 18V5.5l11-2V16"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',
+  wave: '<path d="M3 12h1.5M6.5 9v6M10 5v14M13.5 8v8M17 10.5v3M20.5 12H21"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+  doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>'
+};
+const I = n => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[n] || '') + '</svg>';
+
+/* ---------- Utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function parseData(d) { if (!d) return null; const [y, m, dd] = String(d).split('-').map(Number); if (!y || !m || !dd) return null; return new Date(y, m - 1, dd); }
+function fmtData(d) { const dt = parseData(d); return dt ? `${dt.getDate()} ${MESES[dt.getMonth()]} ${dt.getFullYear()}` : ''; }
+function fmtT(s) { if (!isFinite(s) || s < 0) s = 0; s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function fmtMB(b) { return (b / 1048576).toFixed(1).replace('.', ',') + ' MB'; }
+function uid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16); });
+}
+function extOf(file, k) { const m = file.name.match(/\.([a-z0-9]{1,5})$/i); return m ? m[1].toLowerCase() : (k === 'pdf' ? 'pdf' : 'mp3'); }
+function errMsg(e, fb) {
+  const m = (e && (e.message || e.error_description || e.error)) || String(e || '');
+  if (/Failed to fetch|NetworkError|Load failed|network/i.test(m)) return 'Sem conexão com o Supabase. Verifique a internet.';
+  if (/maximum allowed size|Payload too large|413/i.test(m)) return `Arquivo acima do limite de ${MAX_MB} MB.`;
+  if (/Bucket not found/i.test(m)) return 'Bucket "coro" não encontrado. Rode o script SQL.';
+  if (/row-level security|violates|permission denied|Unauthorized|403/i.test(m)) return 'Sem permissão no Supabase. Rode o script SQL de novo.';
+  if (/Invalid API key|JWT|apikey/i.test(m)) return 'Chave do Supabase inválida.';
+  if (/Invalid supabaseUrl|Invalid URL/i.test(m)) return 'URL do Supabase inválida.';
+  return fb || m || 'Algo deu errado.';
+}
+let toastT;
+function toast(msg, type) {
+  const el = $('#toast'); el.textContent = msg; el.className = 'toast show' + (type === 'err' ? ' err' : '');
+  clearTimeout(toastT); toastT = setTimeout(() => { el.className = 'toast'; }, type === 'err' ? 4500 : 2400);
+}
+function busy(msg) { const el = $('#busy'); if (!msg) { el.hidden = true; return; } $('#busyMsg').textContent = msg; el.hidden = false; }
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); toast('SQL copiado'); }
+  catch (e) {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('SQL copiado'); } catch (e2) { toast('Não foi possível copiar', 'err'); }
+    ta.remove();
+  }
+}
+
+/* ---------- Cache local (IndexedDB) ---------- */
+const idb = (() => {
+  let p = null;
+  const open = () => p || (p = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open('ensaio-coro', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('files');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  }));
+  const tx = async (mode, fn) => {
+    try {
+      const db = await open();
+      return await new Promise((res, rej) => {
+        const t = db.transaction('files', mode); const rq = fn(t.objectStore('files'));
+        t.oncomplete = () => res(rq ? rq.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+      });
+    } catch (e) { return null; }
+  };
+  return {
+    get: k => tx('readonly', s => s.get(k)),
+    set: (k, v) => tx('readwrite', s => s.put(v, k)),
+    del: k => tx('readwrite', s => s.delete(k)),
+    clear: () => tx('readwrite', s => s.clear())
+  };
+})();
+
+/* ---------- Estado ---------- */
+const S = { sb: null, cfg: null, apres: [], mus: [], offline: false, viewKey: '', route: { name: 'home' }, viewerOpen: false };
+const view = $('#view');
+const findApres = id => S.apres.find(a => a.id === id);
+const findMus = id => S.mus.find(m => m.id === id);
+const songsOf = aid => S.mus.filter(m => m.apresentacao_id === aid);
+
+function makeClient(url, key) {
+  return supabase.createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+}
+function setOffline(b) { S.offline = b; $('#offPill').hidden = !b; }
+
+async function loadAll() {
+  if (!S.sb) return false;
+  try {
+    const [a, m] = await Promise.all([
+      S.sb.from(T_AP).select('*').order('criado_em', { ascending: true }),
+      S.sb.from(T_MU).select('*').order('criado_em', { ascending: true })
+    ]);
+    if (a.error) throw a.error;
+    if (m.error) throw m.error;
+    const changed = JSON.stringify([a.data, m.data]) !== JSON.stringify([S.apres, S.mus]);
+    S.apres = a.data || []; S.mus = m.data || [];
+    try { localStorage.setItem(LS_CACHE, JSON.stringify({ apres: S.apres, mus: S.mus })); } catch (e) {}
+    setOffline(false);
+    return changed;
+  } catch (e) {
+    console.warn(e); setOffline(true); return false;
+  }
+}
+
+/* ---------- Arquivos ---------- */
+const inflight = new Map();
+function getFile(path) {
+  if (inflight.has(path)) return inflight.get(path);
+  const pr = (async () => {
+    const c = await idb.get(path);
+    if (c && c.size) return c;
+    if (!S.sb) throw new Error('Failed to fetch');
+    const { data, error } = await S.sb.storage.from(BUCKET).download(path);
+    if (error) throw error;
+    idb.set(path, data);
+    return data;
+  })();
+  inflight.set(path, pr);
+  pr.finally(() => inflight.delete(path)).catch(() => {});
+  return pr;
+}
+const pdfCache = new Map();
+function getPdf(path) {
+  if (!window.pdfjsLib) return Promise.reject(new Error('O leitor de PDF não carregou. Verifique a internet.'));
+  if (pdfCache.has(path)) { const v = pdfCache.get(path); pdfCache.delete(path); pdfCache.set(path, v); return v; }
+  const pr = (async () => {
+    const b = await getFile(path);
+    const buf = new Uint8Array(await b.arrayBuffer());
+    return pdfjsLib.getDocument({ data: buf, isEvalSupported: false }).promise;
+  })();
+  pdfCache.set(path, pr);
+  pr.catch(() => pdfCache.delete(path));
+  while (pdfCache.size > 3) {
+    const k = pdfCache.keys().next().value; const v = pdfCache.get(k); pdfCache.delete(k);
+    v.then(d => d.destroy()).catch(() => {});
+  }
+  return pr;
+}
+function dropPdf(path) { const v = pdfCache.get(path); if (v) { pdfCache.delete(path); v.then(d => d.destroy()).catch(() => {}); } }
+function forgetFile(path) { idb.del(path); dropPdf(path); }
+
+/* ---------- Mixer (volume por música) ---------- */
+function getMix(id) {
+  try { const v = JSON.parse(localStorage.getItem(LS_MIX + id)); if (v && v.bg && v.voz) return v; } catch (e) {}
+  return { bg: { vol: 100, on: true }, voz: { vol: 80, on: true } };
+}
+function setMix(id, mix) {
+  try { localStorage.setItem(LS_MIX + id, JSON.stringify(mix)); } catch (e) {}
+  if (P.musica && P.musica.id === id) applyMix();
+  refreshMixUI(id);
+}
+function refreshMixUI(id) {
+  const mix = getMix(id);
+  for (const ch of $$('.ch[data-song]')) {
+    if (ch.dataset.song !== id) continue;
+    const k = ch.dataset.k;
+    const tg = $('.ch-tg', ch); tg.classList.toggle('muted', !mix[k].on); tg.setAttribute('aria-pressed', String(!mix[k].on));
+    $('.ch-val', ch).textContent = mix[k].on ? mix[k].vol + '%' : 'Mudo';
+    const r = $('.vol', ch); if (document.activeElement !== r) r.value = mix[k].vol; r.style.setProperty('--p', mix[k].vol + '%');
+  }
+  if (V.song && V.song.id === id) for (const c of $$('#viewer .chip[data-k]')) c.classList.toggle('muted', !mix[c.dataset.k].on);
+}
+
+/* ---------- Player (BG + voz sincronizados) ---------- */
+const P = {
+  musica: null, token: 0, ctx: null, ctxFailed: false, playing: false, loading: false, error: false,
+  master: null, wantPlay: false, internal: false, syncT: 0, raf: 0,
+  t: { bg: { el: new Audio(), gain: null, url: null, has: false }, voz: { el: new Audio(), gain: null, url: null, has: false } }
+};
+const KEYS = ['bg', 'voz'];
+const activeEls = () => KEYS.filter(k => P.t[k].has).map(k => P.t[k].el);
+
+for (const k of KEYS) {
+  const el = P.t[k].el;
+  el.preload = 'auto';
+  el.addEventListener('ended', () => { if (el === P.master) { pauseAll(); updateProgress(); } });
+  el.addEventListener('pause', () => { if (el === P.master && P.playing && !P.internal && !el.ended) pauseAll(); });
+  el.addEventListener('durationchange', () => { if (!P.playing) pickMaster(); updateProgress(); });
+}
+
+function ensureCtx() {
+  if (P.ctx || P.ctxFailed) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error('no ctx');
+    P.ctx = new AC();
+    for (const k of KEYS) {
+      const t = P.t[k];
+      const src = P.ctx.createMediaElementSource(t.el);
+      t.gain = P.ctx.createGain();
+      src.connect(t.gain); t.gain.connect(P.ctx.destination);
+    }
+    applyMix();
+  } catch (e) { P.ctxFailed = true; P.ctx = null; }
+}
+function applyMix() {
+  if (!P.musica) return;
+  const mix = getMix(P.musica.id);
+  for (const k of KEYS) {
+    const v = mix[k].on ? mix[k].vol / 100 : 0; const t = P.t[k];
+    if (t.gain) { t.gain.gain.value = v; t.el.volume = 1; } else { t.el.volume = v; }
+  }
+}
+
+let silentUrl = null;
+function silentWav() {
+  if (silentUrl) return silentUrl;
+  const sr = 8000, n = 800, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, sr, true);
+  v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+  silentUrl = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  return silentUrl;
+}
+// Celulares só liberam áudio depois de um toque: na primeira interação, "destrava" os dois canais.
+let unlocked = false;
+function unlockAudio() {
+  if (unlocked) return; unlocked = true;
+  ensureCtx();
+  if (P.ctx && P.ctx.state !== 'running') P.ctx.resume().catch(() => {});
+  for (const k of KEYS) {
+    const el = P.t[k].el; const had = !!el.getAttribute('src');
+    if (!had) el.src = silentWav();
+    el.muted = true;
+    const fin = () => {
+      el.muted = false;
+      if (!had) { if (el.getAttribute('src') === silentUrl) { el.removeAttribute('src'); try { el.load(); } catch (e) {} } }
+      else if (!P.playing) el.pause();
+    };
+    try { const pr = el.play(); if (pr && pr.then) pr.then(fin, fin); else fin(); } catch (e) { fin(); }
+  }
+}
+document.addEventListener('touchend', unlockAudio, true);
+document.addEventListener('click', unlockAudio, true);
+document.addEventListener('keydown', unlockAudio, true);
+
+function waitMeta(el) {
+  return new Promise(res => {
+    if (el.readyState >= 1) return res();
+    let done = false, to = 0;
+    const fin = () => { if (done) return; done = true; el.removeEventListener('loadedmetadata', fin); el.removeEventListener('error', fin); clearTimeout(to); res(); };
+    el.addEventListener('loadedmetadata', fin); el.addEventListener('error', fin);
+    to = setTimeout(fin, 5000);
+  });
+}
+function pickMaster() {
+  const a = activeEls();
+  if (!a.length) { P.master = null; return; }
+  if (a.length === 1) { P.master = a[0]; return; }
+  const [b, v] = a;
+  P.master = (isFinite(v.duration) && isFinite(b.duration) && v.duration > b.duration + 0.5) ? v : b;
+}
+function clearTracks() {
+  for (const k of KEYS) {
+    const t = P.t[k]; t.has = false; t.el.removeAttribute('src');
+    try { t.el.load(); } catch (e) {}
+    if (t.url) { URL.revokeObjectURL(t.url); t.url = null; }
+  }
+}
+async function loadSong(m) {
+  const token = ++P.token;
+  P.wantPlay = false;
+  pauseAll();
+  clearTracks();
+  P.musica = m; P.master = null; P.loading = true; P.error = false;
+  updatePlayerUI();
+  try {
+    const blobs = await Promise.all(KEYS.map(k => m[k + '_path'] ? getFile(m[k + '_path']) : null));
+    if (token !== P.token) return;
+    await Promise.all(KEYS.map((k, i) => {
+      const b = blobs[i]; if (!b) return null;
+      const t = P.t[k]; t.url = URL.createObjectURL(b); t.has = true; t.el.src = t.url;
+      return waitMeta(t.el);
+    }));
+    if (token !== P.token) return;
+    pickMaster(); applyMix(); setMediaSession();
+  } catch (e) {
+    if (token === P.token) { console.warn(e); P.error = true; toast(errMsg(e, 'Não foi possível carregar o áudio.'), 'err'); }
+  } finally {
+    if (token === P.token) {
+      P.loading = false; updatePlayerUI();
+      if (P.wantPlay && P.master) { P.wantPlay = false; play(); }
+    }
+  }
+}
+function unloadPlayer() {
+  P.token++; pauseAll(); clearTracks();
+  P.musica = null; P.master = null; P.loading = false; P.wantPlay = false;
+  try { if ('mediaSession' in navigator) navigator.mediaSession.metadata = null; } catch (e) {}
+  updatePlayerUI();
+}
+function play() {
+  if (!P.master || P.loading) return;
+  ensureCtx();
+  if (P.ctx && P.ctx.state !== 'running') P.ctx.resume().catch(() => {});
+  const m = P.master, d = m.duration;
+  if (m.ended || (isFinite(d) && m.currentTime >= d - 0.05)) seekAll(0);
+  const t = m.currentTime;
+  P.playing = true;
+  for (const el of activeEls()) {
+    if (el !== m) {
+      if (isFinite(el.duration) && t >= el.duration) continue;
+      if (Math.abs(el.currentTime - t) > 0.04) el.currentTime = t;
+    }
+    el.playbackRate = 1;
+    try {
+      const pr = el.play();
+      if (pr && pr.catch) pr.catch(err => { if (el === P.master && err && err.name !== 'AbortError') { pauseAll(); toast('Toque em play novamente.'); } });
+    } catch (e) {}
+  }
+  startLoops(); updatePlayerUI(); setMSState();
+  if (S.viewerOpen) showUI();
+}
+function pauseAll() {
+  P.internal = true;
+  for (const k of KEYS) { const el = P.t[k].el; el.pause(); el.playbackRate = 1; }
+  P.internal = false;
+  P.playing = false; stopLoops(); updatePlayerUI(); setMSState();
+  if (S.viewerOpen) showUI();
+}
+function seekAll(t) {
+  if (!P.master) return;
+  t = Math.max(0, t);
+  for (const el of activeEls()) {
+    const d = el.duration; el.playbackRate = 1;
+    if (isFinite(d) && t >= d) { el.currentTime = Math.max(0, d - 0.01); if (P.playing && el !== P.master) el.pause(); }
+    else { el.currentTime = t; if (P.playing && el.paused) el.play().catch(() => {}); }
+  }
+  updateProgress(); setMSPos();
+}
+function skip(delta) {
+  if (!P.master) return;
+  const d = P.master.duration;
+  let t = P.master.currentTime + delta;
+  if (isFinite(d)) t = Math.min(t, Math.max(0, d - 0.05));
+  seekAll(Math.max(0, t));
+  if (S.viewerOpen) showUI();
+}
+// Mantém a voz alinhada ao BG: corrige pequenas diferenças acelerando de leve, e as grandes com um salto.
+function syncTick() {
+  if (!P.playing || !P.master) return;
+  const mt = P.master.currentTime;
+  for (const el of activeEls()) {
+    if (el === P.master) continue;
+    const d = el.duration;
+    if (isFinite(d) && mt >= d - 0.1) continue;
+    if (el.paused) { el.currentTime = mt; el.play().catch(() => {}); continue; }
+    const diff = mt - el.currentTime, ad = Math.abs(diff);
+    if (ad > 0.35) { el.playbackRate = 1; el.currentTime = mt; }
+    else if (ad > 0.03) { el.playbackRate = 1 + Math.max(-0.05, Math.min(0.05, diff * 0.5)); }
+    else if (el.playbackRate !== 1) el.playbackRate = 1;
+  }
+}
+function startLoops() {
+  if (!P.syncT) P.syncT = setInterval(syncTick, 250);
+  if (!P.raf) { const f = () => { updateProgress(); P.raf = P.playing ? requestAnimationFrame(f) : 0; }; P.raf = requestAnimationFrame(f); }
+}
+function stopLoops() {
+  clearInterval(P.syncT); P.syncT = 0;
+  if (P.raf) cancelAnimationFrame(P.raf); P.raf = 0;
+}
+async function toggleFor(sid) {
+  const m = findMus(sid); if (!m) return;
+  if (!m.bg_path && !m.voz_path) { toast('Esta música não tem áudio anexado.'); return; }
+  if (P.musica && P.musica.id === sid) {
+    if (P.loading) { P.wantPlay = true; return; }
+    if (!P.master) { const pr = loadSong(m); P.wantPlay = true; return pr; }
+    if (P.playing) pauseAll(); else play();
+    return;
+  }
+  const pr = loadSong(m); P.wantPlay = true; await pr;
+}
+
+/* Media Session: controles na tela de bloqueio e no fone */
+let msInit = false;
+function setMediaSession() {
+  if (!('mediaSession' in navigator) || !P.musica) return;
+  try {
+    const a = findApres(P.musica.apresentacao_id);
+    navigator.mediaSession.metadata = new MediaMetadata({ title: P.musica.titulo, artist: a ? a.nome : 'Ensaio do Coro', album: 'Ensaio do Coro' });
+    if (!msInit) {
+      msInit = true;
+      const h = (n, f) => { try { navigator.mediaSession.setActionHandler(n, f); } catch (e) {} };
+      h('play', () => play()); h('pause', () => pauseAll());
+      h('seekbackward', () => skip(-5)); h('seekforward', () => skip(5));
+      h('seekto', d => { if (d && isFinite(d.seekTime)) seekAll(d.seekTime); });
+    }
+  } catch (e) {}
+}
+function setMSState() {
+  if (!('mediaSession' in navigator)) return;
+  try { navigator.mediaSession.playbackState = P.playing ? 'playing' : 'paused'; } catch (e) {}
+  setMSPos();
+}
+function setMSPos() {
+  try {
+    if (P.master && isFinite(P.master.duration) && navigator.mediaSession && navigator.mediaSession.setPositionState)
+      navigator.mediaSession.setPositionState({ duration: P.master.duration, playbackRate: 1, position: Math.min(P.master.currentTime, P.master.duration) });
+  } catch (e) {}
+}
+
+/* Atualização visual do player (página da música, mini player e partitura) */
+function updatePlayerUI() {
+  const mini = $('#mini');
+  const showMini = !!(P.musica && (P.master || P.loading) && !S.viewerOpen && S.route.name !== 'config' && !(S.route.name === 'musica' && S.route.id === P.musica.id));
+  mini.hidden = !showMini; document.body.classList.toggle('has-mini', showMini);
+  if (P.musica) {
+    mini.dataset.song = P.musica.id;
+    $('.mini-t', mini).textContent = P.musica.titulo;
+    const a = findApres(P.musica.apresentacao_id); $('.mini-s', mini).textContent = a ? a.nome : '';
+  }
+  for (const box of $$('.pctl')) {
+    const sid = box.dataset.song;
+    const bound = !!(P.musica && sid && P.musica.id === sid);
+    const playing = bound && P.playing, loading = bound && P.loading;
+    for (const b of $$('.p-play', box)) {
+      const want = loading ? 'l' : (playing ? 'pa' : 'pl');
+      if (b.dataset.st !== want) { b.dataset.st = want; b.innerHTML = loading ? '<span class="spin"></span>' : I(playing ? 'pause' : 'play'); }
+      b.setAttribute('aria-label', playing ? 'Pausar' : 'Tocar');
+    }
+    const seek = $('.p-seek', box); if (seek) seek.disabled = !(bound && P.master);
+    const st = $('.p-status', box);
+    if (st) {
+      let s = '';
+      if (P.musica && !bound && P.playing) s = 'Tocando agora: ' + P.musica.titulo + '. Toque em play para trocar.';
+      else if (loading) s = 'Carregando áudio…';
+      else if (bound && P.error) s = 'Falha ao carregar o áudio. Toque em play para tentar de novo.';
+      st.textContent = s;
+    }
+  }
+  for (const r of $$('[data-row-song]')) {
+    const on = !!(P.musica && r.dataset.rowSong === P.musica.id);
+    r.classList.toggle('loaded', on); r.classList.toggle('playing', on && P.playing);
+  }
+  updateProgress();
+}
+function updateProgress() {
+  const has = !!P.master;
+  const c = has ? P.master.currentTime : 0;
+  const dr = has ? P.master.duration : NaN; const d = isFinite(dr) ? dr : 0;
+  for (const box of $$('.pctl')) {
+    const bound = has && P.musica && box.dataset.song === P.musica.id;
+    const seek = $('.p-seek', box);
+    if (!(seek && seek.dataset.drag)) {
+      const cur = $('.p-cur', box); if (cur) { const s = bound ? fmtT(c) : '0:00'; if (cur.textContent !== s) cur.textContent = s; }
+      if (seek) { const v = bound && d ? Math.round(c / d * 1000) : 0; if (+seek.value !== v) seek.value = v; seek.style.setProperty('--p', (v / 10) + '%'); }
+    }
+    const du = $('.p-dur', box); if (du) { const s = bound && d ? fmtT(d) : '--:--'; if (du.textContent !== s) du.textContent = s; }
+    const bar = $('.p-bar', box); if (bar) bar.style.width = (bound && d ? (c / d * 100) : 0) + '%';
+  }
+}
+
+/* ---------- Navegação ---------- */
+const NAV = [location.hash || '#/'];
+function onHash() {
+  const h = location.hash || '#/';
+  if (NAV.length > 1 && NAV[NAV.length - 2] === h) NAV.pop();
+  else if (NAV[NAV.length - 1] !== h) NAV.push(h);
+  route();
+}
+function go(h) { if ((location.hash || '#/') === h) route(); else location.hash = h; }
+function replaceHash(h) { NAV[NAV.length - 1] = h; location.replace(h); }
+function goBack(parent) { if (NAV.length > 1 && NAV[NAV.length - 2] === parent) history.back(); else replaceHash(parent); }
+function parseHash() {
+  const h = (location.hash || '').replace(/^#\/?/, '').split('/');
+  if (h[0] === 'a' && h[1]) return { name: 'apres', id: h[1] };
+  if (h[0] === 'm' && h[1]) return { name: 'musica', id: h[1], pdf: h[2] === 'pdf' };
+  if (h[0] === 'config') return { name: 'config' };
+  return { name: 'home' };
+}
+function route(force) {
+  const r = parseHash();
+  if (!S.cfg && r.name !== 'config') { replaceHash('#/config'); return; }
+  S.route = r;
+  const key = r.name + ':' + (r.id || '');
+  if (force || key !== S.viewKey) {
+    if (key !== S.viewKey) window.scrollTo(0, 0);
+    S.viewKey = key; renderView(r);
+  }
+  if (r.name === 'musica' && r.pdf) {
+    const m = findMus(r.id);
+    if (m && m.pdf_path) showViewer(m); else { if (S.viewerOpen) hideViewer(); replaceHash('#/m/' + r.id); return; }
+  } else if (S.viewerOpen) hideViewer();
+  updatePlayerUI();
+}
+function renderView(r) {
+  if (r.name === 'config') return renderConfig();
+  if (r.name === 'apres') return renderApres(r.id);
+  if (r.name === 'musica') return renderMusica(r.id);
+  return renderHome();
+}
+function setHeader({ eyebrow, title, back, action }) {
+  $('#eyebrow').textContent = eyebrow || '';
+  $('#title').textContent = title || '';
+  const b = $('#btnBack'); b.hidden = !back; b.onclick = back ? () => goBack(back) : null;
+  const ab = $('#btnAct');
+  if (action) { ab.hidden = false; ab.innerHTML = I(action.icon); ab.setAttribute('aria-label', action.label); ab.title = action.label; ab.onclick = action.fn; }
+  else { ab.hidden = true; ab.onclick = null; }
+  document.title = (title && title !== 'Apresentações') ? title + ' · Ensaio do Coro' : 'Ensaio do Coro';
+}
+function setFab(label, fn) {
+  const f = $('#fab');
+  if (!label) { f.hidden = true; f.onclick = null; return; }
+  f.hidden = false; $('#fabLabel').textContent = label; f.onclick = fn;
+}
+const emptyHTML = (ic, t, p) => `<div class="empty"><div class="ic">${I(ic)}</div><h2>${esc(t)}</h2>${p ? `<p>${esc(p)}</p>` : ''}</div>`;
+
+/* ---------- Telas ---------- */
+function renderHome() {
+  setHeader({ eyebrow: 'Ensaio do Coro', title: 'Apresentações', action: { icon: 'sliders', label: 'Configurações', fn: openSettings } });
+  setFab('Nova apresentação', () => formApres());
+  if (!S.apres.length) {
+    view.innerHTML = emptyHTML('note', 'Nenhuma apresentação ainda', 'Crie a primeira e depois adicione as músicas com o BG, a sua voz e a partitura.');
+    return;
+  }
+  const hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  const prox = [], ant = [];
+  for (const a of S.apres) { const d = parseData(a.data); (d && d < hoje ? ant : prox).push(a); }
+  prox.sort((x, y) => { const dx = parseData(x.data), dy = parseData(y.data); if (dx && dy) return dx - dy; if (dx) return -1; if (dy) return 1; return 0; });
+  ant.sort((x, y) => parseData(y.data) - parseData(x.data));
+  let h = '';
+  if (prox.length) { if (ant.length) h += '<div class="sec-label">Próximas</div>'; h += '<div class="list">' + prox.map(a => cardApres(a, false)).join('') + '</div>'; }
+  if (ant.length) h += '<div class="sec-label">Anteriores</div><div class="list">' + ant.map(a => cardApres(a, true)).join('') + '</div>';
+  view.innerHTML = h;
+}
+function cardApres(a, past) {
+  const d = parseData(a.data); const n = songsOf(a.id).length;
+  const ano = d && d.getFullYear() !== new Date().getFullYear() ? String(d.getFullYear()) : '';
+  const sub = [n + (n === 1 ? ' música' : ' músicas'), a.local || '', ano].filter(Boolean).join(' · ');
+  return `<button class="card${past ? ' past' : ''}" data-go="#/a/${a.id}">
+    <div class="cal">${d ? `<span class="d">${d.getDate()}</span><span class="m">${MESES[d.getMonth()]}</span>` : I('note')}</div>
+    <div class="info"><div class="t">${esc(a.nome)}</div><div class="s">${esc(sub)}</div></div>
+    <span class="chev">${I('chev')}</span></button>`;
+}
+function renderApres(id) {
+  const a = findApres(id);
+  if (!a) { setHeader({ eyebrow: 'Ensaio do Coro', title: 'Não encontrada', back: '#/' }); setFab(null); view.innerHTML = emptyHTML('note', 'Apresentação não encontrada', ''); return; }
+  setHeader({ eyebrow: [fmtData(a.data), a.local].filter(Boolean).join(' · ') || 'Apresentação', title: a.nome, back: '#/', action: { icon: 'edit', label: 'Editar apresentação', fn: () => formApres(a) } });
+  setFab('Nova música', () => formMusica(null, a));
+  const list = songsOf(id);
+  if (!list.length) { view.innerHTML = emptyHTML('note', 'Nenhuma música aqui', 'Toque em Nova música para anexar o BG, a sua voz e a partitura.'); return; }
+  view.innerHTML = '<div class="songs">' + list.map((m, i) => `<button class="row" data-go="#/m/${m.id}" data-row-song="${m.id}">
+    <span class="num">${i + 1}</span><span class="eq"><i></i><i></i><i></i></span>
+    <span class="t">${esc(m.titulo)}</span>
+    <span class="badges"><i class="b${m.bg_path ? ' on' : ''}">BG</i><i class="b${m.voz_path ? ' on' : ''}">VOZ</i><i class="b${m.pdf_path ? ' on' : ''}">PDF</i></span>
+  </button>`).join('') + '</div>';
+}
+function channelHTML(m, k) {
+  const path = m[k + '_path'], icon = k === 'bg' ? 'wave' : 'mic';
+  if (!path) return `<div class="ch na"><div class="ch-tg">${I(icon)}</div><div class="ch-body"><div class="ch-label">${LABEL[k]}</div><div class="ch-na">Não anexado</div></div></div>`;
+  const mix = getMix(m.id)[k];
+  return `<div class="ch" data-song="${m.id}" data-k="${k}">
+    <button class="ch-tg${mix.on ? '' : ' muted'}" data-act="mute" data-k="${k}" aria-pressed="${!mix.on}" aria-label="Ligar ou silenciar ${LABEL[k]}">${I(icon)}</button>
+    <div class="ch-body"><div class="ch-label">${LABEL[k]}<span class="ch-val">${mix.on ? mix.vol + '%' : 'Mudo'}</span></div>
+    <input type="range" class="vol" data-k="${k}" min="0" max="100" step="1" value="${mix.vol}" style="--p:${mix.vol}%" aria-label="Volume ${LABEL[k]}"></div></div>`;
+}
+function renderMusica(id) {
+  const m = findMus(id);
+  if (!m) { setHeader({ eyebrow: 'Ensaio do Coro', title: 'Não encontrada', back: '#/' }); setFab(null); view.innerHTML = emptyHTML('note', 'Música não encontrada', ''); return; }
+  const a = findApres(m.apresentacao_id);
+  setHeader({ eyebrow: a ? a.nome : 'Música', title: m.titulo, back: '#/a/' + m.apresentacao_id, action: { icon: 'edit', label: 'Editar música', fn: () => formMusica(m, a) } });
+  setFab(null);
+  const hasAudio = !!(m.bg_path || m.voz_path);
+  view.innerHTML = `
+  <section class="player pctl" data-song="${m.id}">
+    ${hasAudio ? `
+    <div class="transport">
+      <button class="tbtn" data-act="rew" aria-label="Voltar 5 segundos">${I('rew5')}</button>
+      <button class="play-big p-play" data-act="toggle" aria-label="Tocar">${I('play')}</button>
+      <button class="tbtn" data-act="fwd" aria-label="Avançar 5 segundos">${I('fwd5')}</button>
+    </div>
+    <div class="seekrow"><span class="time p-cur">0:00</span><input type="range" class="p-seek" min="0" max="1000" step="1" value="0" aria-label="Andamento da música"><span class="time r p-dur">--:--</span></div>
+    <div class="status p-status"></div>` : `<div class="noaudio">${I('note')}<span>Nenhum áudio anexado.</span><button class="link" data-act="edit">Anexar</button></div>`}
+  </section>
+  <section class="block"><h2>Faixas</h2>${channelHTML(m, 'bg')}${channelHTML(m, 'voz')}</section>
+  <section class="block"><h2>Partitura <span id="pgCount"></span></h2>
+    ${m.pdf_path ? `<button class="score-open" data-act="pdf" aria-label="Abrir partitura em tela cheia">
+      <div class="thumb-ph" id="thumbPh"><span class="spin"></span></div><canvas class="thumb" id="thumb" hidden></canvas>
+      <span class="score-cta">${I('expand')}Abrir em tela cheia</span></button>`
+    : `<div class="noaudio">${I('doc')}<span>Nenhuma partitura anexada.</span><button class="link" data-act="edit">Anexar PDF</button></div>`}
+  </section>
+  <div class="foot-actions">
+    <button class="btn sm ghost" data-act="edit">${I('edit')}Editar</button>
+    <button class="btn sm ghost danger" data-act="del-song">${I('trash')}Excluir</button>
+  </div>`;
+  if (hasAudio && (!P.musica || (P.musica.id !== m.id && !P.playing))) loadSong(m);
+  if (m.pdf_path) renderThumb(m);
+}
+async function renderThumb(m) {
+  const cv = $('#thumb'), ph = $('#thumbPh'); if (!cv) return;
+  try {
+    const pdf = await getPdf(m.pdf_path);
+    const page = await pdf.getPage(1);
+    if (!cv.isConnected) return;
+    const pc = $('#pgCount'); if (pc) pc.textContent = pdf.numPages + (pdf.numPages === 1 ? ' página' : ' páginas');
+    const w = Math.max(120, Math.min(cv.parentElement.clientWidth - 36, 440));
+    const vp1 = page.getViewport({ scale: 1 }); const sc = w / vp1.width;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const vp = page.getViewport({ scale: sc * dpr });
+    cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+    cv.style.width = w + 'px'; cv.style.height = (vp1.height * sc) + 'px';
+    await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+    if (!cv.isConnected) return;
+    ph.hidden = true; cv.hidden = false;
+  } catch (e) {
+    console.warn(e);
+    if (ph && ph.isConnected) ph.innerHTML = '<span>Não foi possível abrir o PDF.</span>';
+  }
+}
+
+function renderConfig() {
+  setHeader({ eyebrow: 'Ensaio do Coro', title: 'Conectar ao Supabase', back: S.cfg ? '#/' : null });
+  setFab(null);
+  const c = S.cfg || { url: '', key: '' };
+  view.innerHTML = `<section class="cfg">
+    <div class="step"><span class="step-n">1</span><div>
+      <p>No Supabase, abra o <b>SQL Editor</b>, cole o script abaixo e rode. Ele cria as tabelas e o bucket privado <b>coro</b>. Pode ser um projeto que você já usa: tudo começa com <b>coro_</b> e não mexe no resto.</p>
+      <pre class="sql">${esc(SQL)}</pre>
+      <button class="btn sm ghost" data-act="copy-sql">${I('copy')}Copiar SQL</button>
+    </div></div>
+    <div class="step"><span class="step-n">2</span><div>
+      <p>No painel do projeto, clique em <b>Connect</b> (ou vá em <b>Project Settings › API</b>) e copie a URL do projeto e a chave pública (<b>anon</b> ou <b>publishable</b>).</p>
+    </div></div>
+    <form id="cfgForm" autocomplete="off" novalidate>
+      <label class="fld"><span>URL do projeto</span><input name="url" type="url" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="https://xxxx.supabase.co" value="${esc(c.url)}"></label>
+      <label class="fld"><span>Chave pública</span><input name="key" autocapitalize="off" spellcheck="false" placeholder="eyJ... ou sb_publishable_..." value="${esc(c.key)}"></label>
+      <div class="err-box" id="cfgErr" hidden></div>
+      <button type="submit" class="btn primary wide">Conectar</button>
+    </form>
+    <p class="note">A chave fica salva só neste aparelho e não vai dentro do arquivo. Faça este passo uma vez em cada aparelho (celular, tablet e computador).</p>
+  </section>`;
+  $('#cfgForm').onsubmit = async e => {
+    e.preventDefault();
+    const f = e.target, eb = $('#cfgErr');
+    const url = f.elements.url.value.trim().replace(/\/+$/, ''), key = f.elements.key.value.trim();
+    eb.hidden = true;
+    if (!url || !key) { eb.textContent = 'Preencha a URL e a chave.'; eb.hidden = false; return; }
+    if (!window.supabase) { eb.textContent = 'A biblioteca do Supabase não carregou. Verifique a internet e recarregue a página.'; eb.hidden = false; return; }
+    busy('Testando conexão…');
+    try {
+      const sb = makeClient(url, key);
+      const r1 = await sb.from(T_AP).select('id').limit(1);
+      if (r1.error) {
+        const msg = r1.error.message || '';
+        if (r1.error.code === '42P01' || r1.error.code === 'PGRST205' || /does not exist|schema cache|Could not find/i.test(msg)) throw new Error('Conectou, mas as tabelas não existem. Rode o script SQL do passo 1.');
+        throw r1.error;
+      }
+      const r2 = await sb.storage.from(BUCKET).list('', { limit: 1 });
+      if (r2.error) throw new Error(/not found/i.test(r2.error.message || '') ? 'Conectou, mas o bucket "coro" não existe. Rode o script SQL do passo 1.' : r2.error.message);
+      S.cfg = { url, key }; S.sb = sb;
+      try { localStorage.setItem(LS_CFG, JSON.stringify(S.cfg)); } catch (err) {}
+      await loadAll();
+      toast('Conectado');
+      goBack('#/');
+    } catch (err) {
+      eb.textContent = errMsg(err); eb.hidden = false;
+    } finally { busy(null); }
+  };
+}
+
+/* ---------- Folhas e formulários ---------- */
+function openSheet(html, onMount, onClose) {
+  const bd = document.createElement('div');
+  bd.className = 'backdrop';
+  bd.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;
+  document.body.appendChild(bd); document.body.classList.add('noscroll');
+  let closed = false;
+  const close = () => {
+    if (closed) return; closed = true; bd.remove();
+    if (!$('.backdrop') && !S.viewerOpen) document.body.classList.remove('noscroll');
+    if (onClose) onClose();
+  };
+  bd.addEventListener('click', e => { if (e.target === bd || e.target.closest('[data-close]')) close(); });
+  if (onMount) onMount(bd.firstElementChild, close);
+  return close;
+}
+function ask(msg, ok = 'Excluir') {
+  return new Promise(res => {
+    let answered = false;
+    openSheet(`<h3>Confirmar</h3><p class="ask-msg">${esc(msg)}</p>
+      <div class="actions"><span class="sp"></span><button type="button" class="btn ghost" data-close>Cancelar</button><button type="button" class="btn danger-fill" data-ok>${esc(ok)}</button></div>`,
+      (sh, close) => { $('[data-ok]', sh).onclick = () => { answered = true; close(); res(true); }; },
+      () => { if (!answered) res(false); });
+  });
+}
+function openSettings() {
+  let host = S.cfg ? S.cfg.url : '';
+  try { host = new URL(S.cfg.url).host; } catch (e) {}
+  openSheet(`<h3>Configurações</h3>
+    <div class="set-row"><div><div class="set-t">Supabase</div><div class="set-s">${esc(host)}</div></div><button type="button" class="btn sm ghost" data-cfg>Alterar</button></div>
+    <div class="set-row"><div><div class="set-t">Arquivos neste aparelho</div><div class="set-s" data-cache>Músicas já abertas ficam guardadas para tocar sem internet.</div></div><button type="button" class="btn sm ghost" data-clear>Limpar</button></div>
+    <div class="set-row"><div><div class="set-t">Script SQL</div><div class="set-s">Cria as tabelas e o bucket "coro" no Supabase.</div></div><button type="button" class="btn sm ghost" data-sql>Copiar</button></div>
+    <div class="actions"><span class="sp"></span><button type="button" class="btn ghost" data-close>Fechar</button></div>`,
+    (sh, close) => {
+      const upd = async () => {
+        try {
+          const est = navigator.storage && navigator.storage.estimate ? await navigator.storage.estimate() : null;
+          if (est && est.usage != null) $('[data-cache]', sh).textContent = `Em uso: ${fmtMB(est.usage)}. Músicas já abertas tocam sem internet.`;
+        } catch (e) {}
+      };
+      upd();
+      $('[data-cfg]', sh).onclick = () => { close(); go('#/config'); };
+      $('[data-sql]', sh).onclick = () => copyText(SQL);
+      $('[data-clear]', sh).onclick = async () => {
+        if (!await ask('Apagar os arquivos guardados neste aparelho? Eles continuam no Supabase e são baixados de novo quando você abrir a música.', 'Limpar')) return;
+        await idb.clear(); toast('Arquivos locais apagados'); upd();
+      };
+    });
+}
+function needSb() { if (S.sb) return true; toast('Sem conexão com o Supabase. Verifique a internet.', 'err'); return false; }
+function formApres(a) {
+  const ed = !!a;
+  openSheet(`<h3>${ed ? 'Editar apresentação' : 'Nova apresentação'}</h3>
+    <form autocomplete="off">
+      <label class="fld"><span>Nome</span><input name="nome" maxlength="120" placeholder="Ex.: Cantata de Natal" value="${esc(ed ? a.nome : '')}"></label>
+      <div class="grid2">
+        <label class="fld"><span>Data</span><input name="data" type="date" value="${ed && a.data ? esc(a.data) : ''}"></label>
+        <label class="fld"><span>Local</span><input name="local" maxlength="120" placeholder="Opcional" value="${esc(ed && a.local ? a.local : '')}"></label>
+      </div>
+      <div class="actions">${ed ? `<button type="button" class="btn ghost danger" data-del>${I('trash')}Excluir</button>` : ''}<span class="sp"></span>
+        <button type="button" class="btn ghost" data-close>Cancelar</button><button type="submit" class="btn primary">Salvar</button></div>
+    </form>`, (sh, close) => {
+    const f = $('form', sh), E = f.elements;
+    if (!ed) setTimeout(() => E.nome.focus(), 280);
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const row = { nome: E.nome.value.trim(), data: E.data.value || null, local: E.local.value.trim() || null };
+      if (!row.nome) { E.nome.focus(); toast('Dê um nome à apresentação.', 'err'); return; }
+      if (!needSb()) return;
+      busy('Salvando…');
+      try {
+        let r;
+        if (ed) r = await S.sb.from(T_AP).update(row).eq('id', a.id);
+        else { row.id = uid(); r = await S.sb.from(T_AP).insert(row); }
+        if (r.error) throw r.error;
+        await loadAll(); close();
+        if (ed) route(true); else go('#/a/' + row.id);
+        toast(ed ? 'Apresentação atualizada' : 'Apresentação criada');
+      } catch (err) { toast(errMsg(err), 'err'); }
+      finally { busy(null); }
+    };
+    const del = $('[data-del]', sh);
+    if (del) del.onclick = async () => {
+      if (!needSb()) return;
+      const n = songsOf(a.id).length;
+      const ok = await ask(n ? `Excluir "${a.nome}" e ${n === 1 ? 'a música' : 'as ' + n + ' músicas'} dela, com todos os arquivos? Não dá para desfazer.` : `Excluir "${a.nome}"?`);
+      if (!ok) return;
+      busy('Excluindo…');
+      try { await deleteApres(a); close(); goBack('#/'); toast('Apresentação excluída'); }
+      catch (err) { toast(errMsg(err), 'err'); }
+      finally { busy(null); }
+    };
+  });
+}
+async function deleteApres(a) {
+  const songs = songsOf(a.id);
+  const paths = songs.flatMap(m => [m.bg_path, m.voz_path, m.pdf_path]).filter(Boolean);
+  if (P.musica && songs.some(m => m.id === P.musica.id)) unloadPlayer();
+  const r = await S.sb.from(T_AP).delete().eq('id', a.id);
+  if (r.error) throw r.error;
+  if (paths.length) S.sb.storage.from(BUCKET).remove(paths).catch(() => {});
+  paths.forEach(forgetFile);
+  songs.forEach(m => { try { localStorage.removeItem(LS_MIX + m.id); } catch (e) {} });
+  await loadAll();
+}
+async function deleteMusica(m) {
+  if (P.musica && P.musica.id === m.id) unloadPlayer();
+  const r = await S.sb.from(T_MU).delete().eq('id', m.id);
+  if (r.error) throw r.error;
+  const paths = [m.bg_path, m.voz_path, m.pdf_path].filter(Boolean);
+  if (paths.length) S.sb.storage.from(BUCKET).remove(paths).catch(() => {});
+  paths.forEach(forgetFile);
+  try { localStorage.removeItem(LS_MIX + m.id); } catch (e) {}
+  await loadAll();
+}
+async function confirmDeleteSong(m, closeSheet) {
+  if (!needSb()) return;
+  if (!await ask(`Excluir "${m.titulo}" e os arquivos dela? Não dá para desfazer.`)) return;
+  busy('Excluindo…');
+  try { await deleteMusica(m); if (closeSheet) closeSheet(); goBack('#/a/' + m.apresentacao_id); toast('Música excluída'); }
+  catch (err) { toast(errMsg(err), 'err'); }
+  finally { busy(null); }
+}
+function formMusica(m, a) {
+  const ed = !!m;
+  if (!ed && !a) return;
+  const st = { bg: { file: null, rm: false }, voz: { file: null, rm: false }, pdf: { file: null, rm: false } };
+  const slot = k => {
+    const has = ed && m[k + '_path'];
+    const acc = k === 'pdf' ? 'application/pdf,.pdf' : 'audio/*,.mp3,.m4a,.wav,.aac,.ogg';
+    return `<div class="slot${has ? ' has' : ''}" data-k="${k}">
+      <div class="slot-ic">${I(k === 'bg' ? 'wave' : k === 'voz' ? 'mic' : 'doc')}</div>
+      <div class="slot-info"><div class="slot-t">${LABEL[k]}</div><div class="slot-s">${has ? 'Arquivo anexado' : (k === 'pdf' ? 'PDF' : 'MP3') + ' · nenhum arquivo'}</div></div>
+      <label class="btn sm ghost"><span class="lb">${has ? 'Trocar' : 'Escolher'}</span><input type="file" accept="${acc}" hidden></label>
+      ${has ? `<button type="button" class="icon-btn sm" data-rm aria-label="Remover ${LABEL[k]}">${I('trash')}</button>` : ''}
+    </div>`;
+  };
+  openSheet(`<h3>${ed ? 'Editar música' : 'Nova música'}</h3>
+    <form autocomplete="off">
+      <label class="fld"><span>Título</span><input name="titulo" maxlength="140" placeholder="Nome da música" value="${esc(ed ? m.titulo : '')}"></label>
+      ${slot('bg')}${slot('voz')}${slot('pdf')}
+      <p class="hint">Até ${MAX_MB} MB por arquivo.</p>
+      <div class="actions">${ed ? `<button type="button" class="btn ghost danger" data-del>${I('trash')}Excluir</button>` : ''}<span class="sp"></span>
+        <button type="button" class="btn ghost" data-close>Cancelar</button><button type="submit" class="btn primary">Salvar</button></div>
+    </form>`, (sh, close) => {
+    const f = $('form', sh), E = f.elements;
+    for (const el of $$('.slot', sh)) {
+      const k = el.dataset.k, inp = $('input[type=file]', el), s = $('.slot-s', el);
+      inp.onchange = () => {
+        const file = inp.files && inp.files[0]; if (!file) return;
+        if (file.size > MAX_MB * 1048576) { toast(`Arquivo maior que ${MAX_MB} MB.`, 'err'); inp.value = ''; return; }
+        st[k].file = file; st[k].rm = false;
+        el.classList.add('has'); el.classList.remove('rm');
+        s.textContent = file.name + ' · ' + fmtMB(file.size); $('.lb', el).textContent = 'Trocar';
+        if (k !== 'pdf' && !E.titulo.value.trim()) E.titulo.value = file.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+      };
+      const rm = $('[data-rm]', el);
+      if (rm) rm.onclick = () => {
+        st[k].rm = !st[k].rm; st[k].file = null; inp.value = '';
+        el.classList.toggle('rm', st[k].rm); el.classList.toggle('has', !st[k].rm);
+        s.textContent = st[k].rm ? 'Será removido ao salvar' : 'Arquivo anexado';
+      };
+    }
+    f.onsubmit = async e => {
+      e.preventDefault();
+      const titulo = E.titulo.value.trim();
+      if (!titulo) { E.titulo.focus(); toast('Dê um título à música.', 'err'); return; }
+      if (!needSb()) return;
+      const id = ed ? m.id : uid(), aid = ed ? m.apresentacao_id : a.id;
+      const row = { titulo }, up = [], old = [];
+      try {
+        for (const k of ['bg', 'voz', 'pdf']) {
+          const s = st[k];
+          if (s.file) {
+            busy(`Enviando ${k === 'bg' ? 'o BG' : k === 'voz' ? 'a sua voz' : 'a partitura'}…`);
+            const path = `${aid}/${id}/${k}-${Date.now()}.${extOf(s.file, k)}`;
+            const r = await S.sb.storage.from(BUCKET).upload(path, s.file, { contentType: s.file.type || (k === 'pdf' ? 'application/pdf' : 'audio/mpeg'), upsert: false });
+            if (r.error) throw r.error;
+            up.push(path); row[k + '_path'] = path; idb.set(path, s.file);
+            if (ed && m[k + '_path']) old.push(m[k + '_path']);
+          } else if (s.rm && ed && m[k + '_path']) { row[k + '_path'] = null; old.push(m[k + '_path']); }
+        }
+        busy('Salvando…');
+        const r = ed ? await S.sb.from(T_MU).update(row).eq('id', id) : await S.sb.from(T_MU).insert(Object.assign({ id, apresentacao_id: aid }, row));
+        if (r.error) throw r.error;
+        if (old.length) { S.sb.storage.from(BUCKET).remove(old).catch(() => {}); old.forEach(forgetFile); }
+        if (ed && P.musica && P.musica.id === id && ('bg_path' in row || 'voz_path' in row)) unloadPlayer();
+        await loadAll(); close();
+        if (ed) route(true); else go('#/m/' + id);
+        toast(ed ? 'Música atualizada' : 'Música adicionada');
+      } catch (err) {
+        if (up.length) { S.sb.storage.from(BUCKET).remove(up).catch(() => {}); up.forEach(p => idb.del(p)); }
+        toast(errMsg(err), 'err');
+      } finally { busy(null); }
+    };
+    const del = $('[data-del]', sh);
+    if (del) del.onclick = () => confirmDeleteSong(m, close);
+  });
+}
+
+/* ---------- Partitura em tela cheia ---------- */
+const V = { song: null, pdf: null, pages: [], gen: 0, zoom: 0, io: null, hideT: 0, wake: null, dragging: false, scrollRaf: 0 };
+const vPages = $('#vPages');
+function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement; }
+function fsSupported() { const d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen); }
+function enterFs() {
+  try {
+    if (fsEl()) return;
+    const d = document.documentElement, fn = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (fn) { const r = fn.call(d); if (r && r.catch) r.catch(() => {}); }
+  } catch (e) {}
+}
+function exitFs() {
+  try {
+    if (!fsEl()) return;
+    const fn = document.exitFullscreen || document.webkitExitFullscreen;
+    const r = fn && fn.call(document); if (r && r.catch) r.catch(() => {});
+  } catch (e) {}
+}
+function updFsBtn() { const b = $('#vFs'); b.hidden = !fsSupported(); b.innerHTML = I(fsEl() ? 'shrink' : 'expand'); b.setAttribute('aria-label', fsEl() ? 'Sair da tela cheia' : 'Tela cheia'); }
+document.addEventListener('fullscreenchange', updFsBtn);
+document.addEventListener('webkitfullscreenchange', updFsBtn);
+
+async function requestWake() { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') V.wake = await navigator.wakeLock.request('screen'); } catch (e) {} }
+function releaseWake() { try { if (V.wake) V.wake.release(); } catch (e) {} V.wake = null; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && S.viewerOpen) requestWake(); });
+
+function openViewer(m) {
+  if (!m || !m.pdf_path) return;
+  showViewer(m);
+  enterFs();
+  go('#/m/' + m.id + '/pdf');
+}
+function closeViewer() { if (V.song) goBack('#/m/' + V.song.id); }
+function showViewer(m) {
+  if (S.viewerOpen && V.song && V.song.id === m.id) return;
+  V.song = m; S.viewerOpen = true;
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  const el = $('#viewer'); el.hidden = false; document.body.classList.add('noscroll');
+  $('#vBot').dataset.song = m.id;
+  $('#vTitle').textContent = m.titulo;
+  for (const c of $$('#viewer .chip[data-k]')) c.disabled = !m[c.dataset.k + '_path'];
+  refreshMixUI(m.id);
+  $('#vBot').hidden = !(m.bg_path || m.voz_path);
+  V.zoom = 0; updFsBtn(); showUI(); requestWake(); loadViewerPdf(m);
+  if ((m.bg_path || m.voz_path) && (!P.musica || (P.musica.id !== m.id && !P.playing))) loadSong(m);
+  updatePlayerUI();
+}
+function hideViewer() {
+  S.viewerOpen = false;
+  $('#viewer').hidden = true; $('#viewer').classList.remove('hide-ui');
+  if (!$('.backdrop')) document.body.classList.remove('noscroll');
+  V.gen++;
+  if (V.io) { V.io.disconnect(); V.io = null; }
+  for (const p of V.pages) if (p.task) try { p.task.cancel(); } catch (e) {}
+  V.pages = []; V.pdf = null; V.song = null; vPages.innerHTML = '';
+  clearTimeout(V.hideT); releaseWake(); exitFs();
+  updatePlayerUI();
+}
+async function loadViewerPdf(m) {
+  const gen = ++V.gen;
+  vPages.innerHTML = '<div class="v-loading"><span class="spin"></span>Carregando partitura…</div>';
+  $('#vPg').textContent = '';
+  try {
+    const pdf = await getPdf(m.pdf_path); if (gen !== V.gen) return;
+    const pages = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i); if (gen !== V.gen) return;
+      const vp = page.getViewport({ scale: 1 });
+      pages.push({ n: i, page, w: vp.width, h: vp.height, el: null, cv: null, cssW: 0, rw: 0, pend: 0, task: null });
+    }
+    V.pdf = pdf; vPages.innerHTML = '';
+    for (const p of pages) { const d = document.createElement('div'); d.className = 'v-page'; d.dataset.n = p.n; vPages.appendChild(d); p.el = d; }
+    V.pages = pages; layoutPages(); vPages.scrollTop = 0;
+    V.io = new IntersectionObserver(ents => {
+      for (const en of ents) {
+        const p = V.pages[+en.target.dataset.n - 1]; if (!p) continue;
+        if (en.isIntersecting) renderPage(p, gen); else freePage(p);
+      }
+    }, { root: vPages, rootMargin: '120% 0px' });
+    pages.forEach(p => V.io.observe(p.el));
+    updatePageIndicator();
+  } catch (e) {
+    console.warn(e);
+    if (gen === V.gen) vPages.innerHTML = '<div class="v-loading">' + esc(errMsg(e, 'Não foi possível abrir a partitura.')) + '</div>';
+  }
+}
+function baseW(p) {
+  const cw = vPages.clientWidth - 16, ch = window.innerHeight - 76;
+  if (cw > ch && cw >= 900) return Math.min(cw, ch * p.w / p.h); // tela larga: página inteira visível
+  return cw; // celular e tablet em pé: ocupa a largura
+}
+function layoutPages() {
+  const z = ZOOMS[V.zoom];
+  for (const p of V.pages) {
+    const w = Math.floor(baseW(p) * z), h = Math.floor(w * p.h / p.w);
+    if (p.cssW !== w) { p.cssW = w; p.el.style.width = w + 'px'; p.el.style.height = h + 'px'; }
+  }
+  $('#vZoomOut').disabled = V.zoom === 0;
+  $('#vZoomIn').disabled = V.zoom === ZOOMS.length - 1;
+}
+async function renderPage(p, gen) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  let tw = Math.round(p.cssW * dpr);
+  const MAXPX = 14e6;
+  if (tw * tw * p.h / p.w > MAXPX) tw = Math.floor(Math.sqrt(MAXPX * p.w / p.h));
+  if (p.rw === tw || (p.task && p.pend === tw)) return;
+  if (p.task) { try { p.task.cancel(); } catch (e) {} p.task = null; }
+  const vp = p.page.getViewport({ scale: tw / p.w });
+  const cv = document.createElement('canvas');
+  cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
+  const task = p.page.render({ canvasContext: cv.getContext('2d', { alpha: false }), viewport: vp });
+  p.task = task; p.pend = tw;
+  try { await task.promise; } catch (e) { return; }
+  if (gen !== V.gen || p.task !== task) return;
+  p.task = null; p.pend = 0; p.rw = tw;
+  if (p.cv) p.cv.remove();
+  p.el.appendChild(cv); p.cv = cv;
+}
+function freePage(p) {
+  if (p.task) { try { p.task.cancel(); } catch (e) {} p.task = null; p.pend = 0; }
+  if (p.cv) { p.cv.width = 0; p.cv.height = 0; p.cv.remove(); p.cv = null; p.rw = 0; }
+}
+function rerenderVisible() {
+  const gen = V.gen, r = vPages.getBoundingClientRect();
+  for (const p of V.pages) { const b = p.el.getBoundingClientRect(); if (b.bottom > r.top - r.height * 1.2 && b.top < r.bottom + r.height * 1.2) renderPage(p, gen); }
+}
+function setZoom(dz) {
+  const nz = Math.max(0, Math.min(ZOOMS.length - 1, V.zoom + dz));
+  if (nz === V.zoom || !V.pages.length) return;
+  const ry = (vPages.scrollTop + vPages.clientHeight / 2) / (vPages.scrollHeight || 1);
+  V.zoom = nz; layoutPages();
+  vPages.scrollTop = ry * vPages.scrollHeight - vPages.clientHeight / 2;
+  vPages.scrollLeft = (vPages.scrollWidth - vPages.clientWidth) / 2;
+  rerenderVisible(); updatePageIndicator(); showUI();
+}
+function updatePageIndicator() {
+  if (!V.pages.length) return;
+  const r = vPages.getBoundingClientRect(), mid = r.top + r.height * 0.4;
+  let best = 1, bd = Infinity;
+  for (const p of V.pages) { const b = p.el.getBoundingClientRect(); const d = Math.abs((b.top + b.bottom) / 2 - mid); if (d < bd) { bd = d; best = p.n; } }
+  $('#vPg').textContent = V.pages.length > 1 ? best + '/' + V.pages.length : '';
+}
+vPages.addEventListener('scroll', () => { if (!V.scrollRaf) V.scrollRaf = requestAnimationFrame(() => { V.scrollRaf = 0; updatePageIndicator(); }); }, { passive: true });
+vPages.addEventListener('click', () => toggleUI());
+function showUI() {
+  const el = $('#viewer'); el.classList.remove('hide-ui'); clearTimeout(V.hideT);
+  if (P.playing && P.musica && V.song && P.musica.id === V.song.id)
+    V.hideT = setTimeout(() => { if (!V.dragging && S.viewerOpen) el.classList.add('hide-ui'); }, 3500);
+}
+function toggleUI() { const el = $('#viewer'); if (el.classList.contains('hide-ui')) showUI(); else { clearTimeout(V.hideT); el.classList.add('hide-ui'); } }
+let mmT = 0;
+$('#viewer').addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return;
+  const now = Date.now(); if (now - mmT < 300) return; mmT = now;
+  if ($('#viewer').classList.contains('hide-ui')) showUI();
+});
+let rzT = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(rzT);
+  rzT = setTimeout(() => {
+    if (!S.viewerOpen || !V.pages.length) return;
+    const ry = vPages.scrollTop / (vPages.scrollHeight || 1);
+    layoutPages(); vPages.scrollTop = ry * vPages.scrollHeight;
+    rerenderVisible(); updatePageIndicator();
+  }, 200);
+});
+
+/* ---------- Eventos globais ---------- */
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]');
+  if (g) { e.preventDefault(); go(g.dataset.go); return; }
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const ctx = b.closest('[data-song]');
+  const sid = ctx ? ctx.dataset.song : (S.route.name === 'musica' ? S.route.id : null);
+  const m = sid ? findMus(sid) : null;
+  const bound = !!(P.musica && sid && P.musica.id === sid);
+  switch (b.dataset.act) {
+    case 'toggle': if (sid) toggleFor(sid); break;
+    case 'rew': if (bound) skip(-5); break;
+    case 'fwd': if (bound) skip(5); break;
+    case 'pdf': if (m) openViewer(m); break;
+    case 'edit': if (m) formMusica(m, findApres(m.apresentacao_id)); break;
+    case 'del-song': if (m) confirmDeleteSong(m); break;
+    case 'mute': if (sid) { const k = b.dataset.k, mix = getMix(sid); mix[k].on = !mix[k].on; setMix(sid, mix); } break;
+    case 'open-current': if (P.musica) go('#/m/' + P.musica.id); break;
+    case 'copy-sql': copyText(SQL); break;
+    case 'vclose': closeViewer(); break;
+    case 'vzin': setZoom(1); break;
+    case 'vzout': setZoom(-1); break;
+    case 'vfs': fsEl() ? exitFs() : enterFs(); break;
+  }
+  if (S.viewerOpen && b.closest('#viewer') && b.dataset.act !== 'vclose') showUI();
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.classList.contains('p-seek')) {
+    const box = t.closest('.pctl');
+    if (!(P.master && P.musica && box && box.dataset.song === P.musica.id)) return;
+    t.dataset.drag = '1'; V.dragging = true;
+    const d = P.master.duration || 0;
+    const cur = $('.p-cur', box); if (cur) cur.textContent = fmtT(t.value / 1000 * d);
+    t.style.setProperty('--p', (t.value / 10) + '%');
+    if (S.viewerOpen) showUI();
+  } else if (t.classList.contains('vol')) {
+    const ch = t.closest('[data-song]'); if (!ch) return;
+    const sid = ch.dataset.song, k = t.dataset.k, mix = getMix(sid);
+    mix[k].vol = +t.value; mix[k].on = true; setMix(sid, mix);
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.classList.contains('p-seek') && t.dataset.drag) {
+    delete t.dataset.drag; V.dragging = false;
+    if (P.master) seekAll(t.value / 1000 * (P.master.duration || 0));
+    if (S.viewerOpen) showUI();
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const t = e.target, tag = (t.tagName || '').toLowerCase();
+  if (tag === 'textarea' || (tag === 'input' && t.type !== 'range') || $('.backdrop')) return;
+  const sid = S.viewerOpen ? (V.song && V.song.id) : (S.route.name === 'musica' ? S.route.id : (P.musica && P.musica.id));
+  if (e.code === 'Space' && (tag !== 'button' || S.viewerOpen)) {
+    e.preventDefault(); if (tag === 'button') t.blur();
+    if (sid) toggleFor(sid); if (S.viewerOpen) showUI();
+  }
+  else if (e.key === 'ArrowLeft' && tag !== 'input') { e.preventDefault(); skip(-5); }
+  else if (e.key === 'ArrowRight' && tag !== 'input') { e.preventDefault(); skip(5); }
+  else if (S.viewerOpen && e.key === 'Escape') closeViewer();
+  else if (S.viewerOpen && (e.key === '+' || e.key === '=')) setZoom(1);
+  else if (S.viewerOpen && e.key === '-') setZoom(-1);
+});
+window.addEventListener('scroll', () => { $('#top').classList.toggle('scrolled', window.scrollY > 4); }, { passive: true });
+
+/* ---------- Início ---------- */
+function init() {
+  for (const el of $$('[data-i]')) el.insertAdjacentHTML('afterbegin', I(el.dataset.i));
+  // Link de configuração (#setup=...): grava URL e chave no aparelho sem que elas fiquem no código.
+  let viaLink = false;
+  const sm = location.hash.match(/^#setup=([A-Za-z0-9_-]+)/);
+  if (sm) {
+    try {
+      const b64 = sm[1].replace(/-/g, '+').replace(/_/g, '/');
+      const j = JSON.parse(atob(b64 + '==='.slice((b64.length + 3) % 4)));
+      if (j && j.u && j.k) { localStorage.setItem(LS_CFG, JSON.stringify({ url: String(j.u).replace(/\/+$/, ''), key: String(j.k) })); viaLink = true; }
+    } catch (e) {}
+    history.replaceState(null, '', location.pathname + location.search + '#/');
+    NAV[0] = '#/';
+  }
+  try { S.cfg = JSON.parse(localStorage.getItem(LS_CFG)); } catch (e) { S.cfg = null; }
+  if (S.cfg && !(S.cfg.url && S.cfg.key)) S.cfg = null;
+  try { const c = JSON.parse(localStorage.getItem(LS_CACHE)); if (c) { S.apres = c.apres || []; S.mus = c.mus || []; } } catch (e) {}
+  if (S.cfg) {
+    if (window.supabase) { try { S.sb = makeClient(S.cfg.url, S.cfg.key); } catch (e) { S.cfg = null; } }
+    else setOffline(true);
+  }
+  window.addEventListener('hashchange', onHash);
+  route();
+  if (S.sb) loadAll().then(ch => {
+    if (ch) route(true);
+    if (viaLink) toast(S.offline ? 'Configuração salva, mas o Supabase não respondeu.' : 'Aparelho conectado ao Supabase', S.offline ? 'err' : '');
+  });
+}
+init();
+})();
+</script>
+</body>
+</html>
