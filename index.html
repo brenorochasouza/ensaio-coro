@@ -221,6 +221,28 @@ pre.sql{background:var(--bg);border:1px solid var(--line);border-radius:12px;pad
 .v-pages{position:absolute;inset:0;overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:calc(var(--sat) + 62px) 8px calc(var(--sab) + 160px)}
 .v-page{position:relative;margin:0 auto 12px;background:#fff;box-shadow:0 4px 26px rgba(0,0,0,.55)}
 .v-page canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.v-page canvas.v-pdf{z-index:0}
+.v-page canvas.v-anot{z-index:1;pointer-events:none}
+.v-pages{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.v-pages.drawing{touch-action:none;cursor:crosshair}
+.v-tools{display:none;flex:1;align-items:center;gap:4px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.v-tools::-webkit-scrollbar{display:none}
+.viewer.drawing .v-tools{display:flex}
+.viewer.drawing .v-norm{display:none!important}
+.viewer.drawing .v-top{background:rgba(8,7,11,.95);padding-bottom:8px;border-bottom:1px solid var(--line)}
+.v-done{height:38px;padding:0 12px 0 9px;border-radius:12px;background:var(--accent);color:var(--ink);font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:5px;flex:none}
+.v-done svg{width:18px;height:18px}
+.sw{width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;border:2px solid transparent;transition:border-color .15s}
+.sw i{width:18px;height:18px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1px rgba(255,255,255,.3)}
+.sw.on{border-color:var(--text)}
+.tool{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:var(--muted);flex:none;transition:background .15s,color .15s}
+.tool.on{background:var(--accent-soft);color:var(--accent)}
+.tool svg{width:20px;height:20px}
+.tool:disabled{opacity:.3}
+.v-sep{width:1px;height:22px;background:var(--line2);flex:none;margin:0 3px}
+.v-stat{font-size:11px;line-height:1.15;color:var(--faint);max-width:70px;text-align:right;margin-left:auto;padding:0 4px 0 6px;flex:none}
+@media (max-width:420px){.v-tools{gap:2px}.sw{width:30px;height:30px}.tool{width:34px;height:34px}.v-done{padding:0 10px 0 8px}.v-sep{margin:0 2px}}
+.v-stat.err{color:var(--danger)}
 .v-loading{height:70vh;display:flex;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:15px}
 .v-top{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;align-items:center;gap:2px;padding:calc(var(--sat) + 8px) 8px 28px;background:linear-gradient(rgba(8,7,11,.94),rgba(8,7,11,0));transition:opacity .25s,transform .25s}
 .v-title{flex:1;min-width:0;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
@@ -288,12 +310,25 @@ pre.sql{background:var(--bg);border:1px solid var(--line);border-radius:12px;pad
 <div class="viewer" id="viewer" hidden>
   <div class="v-pages" id="vPages"></div>
   <div class="v-top">
-    <button class="icon-btn" data-act="vclose" data-i="close" aria-label="Fechar partitura"></button>
-    <div class="v-title" id="vTitle"></div>
-    <span class="v-pg" id="vPg"></span>
-    <button class="icon-btn" id="vZoomOut" data-act="vzout" data-i="zout" aria-label="Diminuir zoom"></button>
-    <button class="icon-btn" id="vZoomIn" data-act="vzin" data-i="zin" aria-label="Aumentar zoom"></button>
-    <button class="icon-btn" id="vFs" data-act="vfs" aria-label="Tela cheia"></button>
+    <button class="icon-btn v-norm" data-act="vclose" data-i="close" aria-label="Fechar partitura"></button>
+    <div class="v-title v-norm" id="vTitle"></div>
+    <span class="v-pg v-norm" id="vPg"></span>
+    <button class="icon-btn v-norm" data-act="vdraw" data-i="pen" aria-label="Anotar na partitura" title="Anotar"></button>
+    <button class="icon-btn v-norm" id="vZoomOut" data-act="vzout" data-i="zout" aria-label="Diminuir zoom"></button>
+    <button class="icon-btn v-norm" id="vZoomIn" data-act="vzin" data-i="zin" aria-label="Aumentar zoom"></button>
+    <button class="icon-btn v-norm" id="vFs" data-act="vfs" aria-label="Tela cheia"></button>
+    <div class="v-tools">
+      <button class="v-done" data-act="vdone" data-i="check">Pronto</button>
+      <span class="v-sep"></span>
+      <button class="sw on" data-act="vtool" data-tool="pen" data-color="#E53935" style="--c:#E53935" aria-label="Caneta vermelha"><i></i></button>
+      <button class="sw" data-act="vtool" data-tool="pen" data-color="#2F6FED" style="--c:#2F6FED" aria-label="Caneta azul"><i></i></button>
+      <button class="sw" data-act="vtool" data-tool="pen" data-color="#1A1A1A" style="--c:#1A1A1A" aria-label="Caneta preta"><i></i></button>
+      <button class="tool" data-act="vtool" data-tool="hl" data-i="marker" aria-label="Marca-texto"></button>
+      <button class="tool" data-act="vtool" data-tool="erase" data-i="eraser" aria-label="Borracha"></button>
+      <span class="v-sep"></span>
+      <button class="tool" id="vUndo" data-act="vundo" data-i="undo" aria-label="Desfazer" disabled></button>
+      <span class="v-stat" id="vStat"></span>
+    </div>
   </div>
   <div class="v-bot pctl" id="vBot">
     <div class="v-bot-in">
@@ -329,7 +364,7 @@ pre.sql{background:var(--bg);border:1px solid var(--line);border-radius:12px;pad
 const BUCKET = 'coro';
 const T_AP = 'coro_apresentacoes';
 const T_MU = 'coro_musicas';
-const LS_CFG = 'coro.cfg', LS_CACHE = 'coro.cache', LS_MIX = 'coro.mix.';
+const LS_CFG = 'coro.cfg', LS_CACHE = 'coro.cache', LS_MIX = 'coro.mix.', LS_ANOT = 'coro.anot.';
 const MAX_MB = 50;
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 const LABEL = { bg: 'Base (BG)', voz: 'Minha voz', pdf: 'Partitura' };
@@ -422,7 +457,12 @@ const ICONS = {
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
   doc: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
-  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>'
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',
+  pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  marker: '<path d="M9 11l-6 6v3h9l3-3"/><path d="M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>',
+  eraser: '<path d="M7 21l-4.3-4.3a2.4 2.4 0 0 1 0-3.4l9.6-9.6a2.4 2.4 0 0 1 3.4 0l5.6 5.6a2.4 2.4 0 0 1 0 3.4L13 21"/><path d="M22 21H7M5 11l9 9"/>',
+  undo: '<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>'
 };
 const I = n => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[n] || '') + '</svg>';
 
@@ -559,7 +599,7 @@ function getPdf(path) {
   return pr;
 }
 function dropPdf(path) { const v = pdfCache.get(path); if (v) { pdfCache.delete(path); v.then(d => d.destroy()).catch(() => {}); } }
-function forgetFile(path) { idb.del(path); dropPdf(path); }
+function forgetFile(path) { idb.del(path); dropPdf(path); try { localStorage.removeItem(LS_ANOT + path); } catch (e) {} if (typeof anotQueue !== 'undefined') anotQueue.delete(path); }
 
 /* ---------- Mixer (volume por música) ---------- */
 function getMix(id) {
@@ -1024,6 +1064,8 @@ async function renderThumb(m) {
     cv.style.width = w + 'px'; cv.style.height = (vp1.height * sc) + 'px';
     await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
     if (!cv.isConnected) return;
+    const loc = anotLocal(anotPathOf(m)), p1 = loc && loc.d && loc.d.pages && loc.d.pages['1'];
+    if (p1) { const ctx = cv.getContext('2d'); for (const st of p1) drawStroke(ctx, st, cv.width); }
     ph.hidden = true; cv.hidden = false;
   } catch (e) {
     console.warn(e);
@@ -1177,7 +1219,7 @@ function formApres(a) {
 }
 async function deleteApres(a) {
   const songs = songsOf(a.id);
-  const paths = songs.flatMap(m => [m.bg_path, m.voz_path, m.pdf_path]).filter(Boolean);
+  const paths = songs.flatMap(m => [m.bg_path, m.voz_path, m.pdf_path, m.pdf_path && anotPathOf(m)]).filter(Boolean);
   if (P.musica && songs.some(m => m.id === P.musica.id)) unloadPlayer();
   const r = await S.sb.from(T_AP).delete().eq('id', a.id);
   if (r.error) throw r.error;
@@ -1190,7 +1232,7 @@ async function deleteMusica(m) {
   if (P.musica && P.musica.id === m.id) unloadPlayer();
   const r = await S.sb.from(T_MU).delete().eq('id', m.id);
   if (r.error) throw r.error;
-  const paths = [m.bg_path, m.voz_path, m.pdf_path].filter(Boolean);
+  const paths = [m.bg_path, m.voz_path, m.pdf_path, m.pdf_path && anotPathOf(m)].filter(Boolean);
   if (paths.length) S.sb.storage.from(BUCKET).remove(paths).catch(() => {});
   paths.forEach(forgetFile);
   try { localStorage.removeItem(LS_MIX + m.id); } catch (e) {}
@@ -1235,6 +1277,7 @@ function formMusica(m, a) {
         st[k].file = file; st[k].rm = false;
         el.classList.add('has'); el.classList.remove('rm');
         s.textContent = file.name + ' · ' + fmtMB(file.size); $('.lb', el).textContent = 'Trocar';
+        if (k === 'pdf' && ed && m.pdf_path) $('.hint', sh).textContent = 'Trocar a partitura apaga as anotações feitas na anterior.';
         if (k !== 'pdf' && !E.titulo.value.trim()) E.titulo.value = file.name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
       };
       const rm = $('[data-rm]', el);
@@ -1242,6 +1285,7 @@ function formMusica(m, a) {
         st[k].rm = !st[k].rm; st[k].file = null; inp.value = '';
         el.classList.toggle('rm', st[k].rm); el.classList.toggle('has', !st[k].rm);
         s.textContent = st[k].rm ? 'Será removido ao salvar' : 'Arquivo anexado';
+        if (k === 'pdf') $('.hint', sh).textContent = st[k].rm ? 'Remover a partitura apaga as anotações feitas nela.' : `Até ${MAX_MB} MB por arquivo.`;
       };
     }
     f.onsubmit = async e => {
@@ -1263,6 +1307,7 @@ function formMusica(m, a) {
             if (ed && m[k + '_path']) old.push(m[k + '_path']);
           } else if (s.rm && ed && m[k + '_path']) { row[k + '_path'] = null; old.push(m[k + '_path']); }
         }
+        if (ed && m.pdf_path && 'pdf_path' in row) old.push(anotPathOf(m));
         busy('Salvando…');
         const r = ed ? await S.sb.from(T_MU).update(row).eq('id', id) : await S.sb.from(T_MU).insert(Object.assign({ id, apresentacao_id: aid }, row));
         if (r.error) throw r.error;
@@ -1282,7 +1327,7 @@ function formMusica(m, a) {
 }
 
 /* ---------- Partitura em tela cheia ---------- */
-const V = { song: null, pdf: null, pages: [], gen: 0, zoom: 0, io: null, hideT: 0, wake: null, dragging: false, scrollRaf: 0 };
+const V = { song: null, pdf: null, pages: [], gen: 0, zoom: 0, io: null, hideT: 0, wake: null, dragging: false, scrollRaf: 0, anot: { v: 1, pages: {} }, anotPath: null, undo: [] };
 const vPages = $('#vPages');
 function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement; }
 function fsSupported() { const d = document.documentElement; return !!(d.requestFullscreen || d.webkitRequestFullscreen); }
@@ -1325,11 +1370,13 @@ function showViewer(m) {
   for (const c of $$('#viewer .chip[data-k]')) c.disabled = !m[c.dataset.k + '_path'];
   refreshMixUI(m.id);
   $('#vBot').hidden = !(m.bg_path || m.voz_path);
-  V.zoom = 0; updFsBtn(); showUI(); requestWake(); loadViewerPdf(m);
+  V.zoom = 0; updFsBtn(); showUI(); requestWake(); anotLoad(m); loadViewerPdf(m);
   if ((m.bg_path || m.voz_path) && (!P.musica || (P.musica.id !== m.id && !P.playing))) loadSong(m);
   updatePlayerUI();
 }
 function hideViewer() {
+  const song = V.song;
+  setDraw(false); V.undo = []; V.anotPath = null;
   S.viewerOpen = false;
   $('#viewer').hidden = true; $('#viewer').classList.remove('hide-ui');
   if (!$('.backdrop')) document.body.classList.remove('noscroll');
@@ -1338,6 +1385,7 @@ function hideViewer() {
   for (const p of V.pages) if (p.task) try { p.task.cancel(); } catch (e) {}
   V.pages = []; V.pdf = null; V.song = null; vPages.innerHTML = '';
   clearTimeout(V.hideT); releaseWake(); exitFs();
+  if (song && song.pdf_path && $('#thumb')) renderThumb(song);
   updatePlayerUI();
 }
 async function loadViewerPdf(m) {
@@ -1350,7 +1398,7 @@ async function loadViewerPdf(m) {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i); if (gen !== V.gen) return;
       const vp = page.getViewport({ scale: 1 });
-      pages.push({ n: i, page, w: vp.width, h: vp.height, el: null, cv: null, cssW: 0, rw: 0, pend: 0, task: null });
+      pages.push({ n: i, page, w: vp.width, h: vp.height, el: null, cv: null, ov: null, ovW: 0, cssW: 0, rw: 0, pend: 0, task: null });
     }
     V.pdf = pdf; vPages.innerHTML = '';
     for (const p of pages) { const d = document.createElement('div'); d.className = 'v-page'; d.dataset.n = p.n; vPages.appendChild(d); p.el = d; }
@@ -1377,7 +1425,7 @@ function layoutPages() {
   const z = ZOOMS[V.zoom];
   for (const p of V.pages) {
     const w = Math.floor(baseW(p) * z), h = Math.floor(w * p.h / p.w);
-    if (p.cssW !== w) { p.cssW = w; p.el.style.width = w + 'px'; p.el.style.height = h + 'px'; }
+    if (p.cssW !== w) { p.cssW = w; p.el.style.width = w + 'px'; p.el.style.height = h + 'px'; if (p.ov) paintPage(p); }
   }
   $('#vZoomOut').disabled = V.zoom === 0;
   $('#vZoomIn').disabled = V.zoom === ZOOMS.length - 1;
@@ -1387,10 +1435,11 @@ async function renderPage(p, gen) {
   let tw = Math.round(p.cssW * dpr);
   const MAXPX = 14e6;
   if (tw * tw * p.h / p.w > MAXPX) tw = Math.floor(Math.sqrt(MAXPX * p.w / p.h));
+  if (!p.ov || p.ovW !== p.cssW) paintPage(p);
   if (p.rw === tw || (p.task && p.pend === tw)) return;
   if (p.task) { try { p.task.cancel(); } catch (e) {} p.task = null; }
   const vp = p.page.getViewport({ scale: tw / p.w });
-  const cv = document.createElement('canvas');
+  const cv = document.createElement('canvas'); cv.className = 'v-pdf';
   cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
   const task = p.page.render({ canvasContext: cv.getContext('2d', { alpha: false }), viewport: vp });
   p.task = task; p.pend = tw;
@@ -1403,6 +1452,7 @@ async function renderPage(p, gen) {
 function freePage(p) {
   if (p.task) { try { p.task.cancel(); } catch (e) {} p.task = null; p.pend = 0; }
   if (p.cv) { p.cv.width = 0; p.cv.height = 0; p.cv.remove(); p.cv = null; p.rw = 0; }
+  if (p.ov && !(D.cur && D.cur.p === p)) { p.ov.width = 0; p.ov.remove(); p.ov = null; p.ovW = 0; }
 }
 function rerenderVisible() {
   const gen = V.gen, r = vPages.getBoundingClientRect();
@@ -1425,10 +1475,10 @@ function updatePageIndicator() {
   $('#vPg').textContent = V.pages.length > 1 ? best + '/' + V.pages.length : '';
 }
 vPages.addEventListener('scroll', () => { if (!V.scrollRaf) V.scrollRaf = requestAnimationFrame(() => { V.scrollRaf = 0; updatePageIndicator(); }); }, { passive: true });
-vPages.addEventListener('click', () => toggleUI());
+vPages.addEventListener('click', () => { if (!D.on) toggleUI(); });
 function showUI() {
   const el = $('#viewer'); el.classList.remove('hide-ui'); clearTimeout(V.hideT);
-  if (P.playing && P.musica && V.song && P.musica.id === V.song.id)
+  if (P.playing && P.musica && V.song && P.musica.id === V.song.id && !D.on)
     V.hideT = setTimeout(() => { if (!V.dragging && S.viewerOpen) el.classList.add('hide-ui'); }, 3500);
 }
 function toggleUI() { const el = $('#viewer'); if (el.classList.contains('hide-ui')) showUI(); else { clearTimeout(V.hideT); el.classList.add('hide-ui'); } }
@@ -1448,6 +1498,226 @@ window.addEventListener('resize', () => {
     rerenderVisible(); updatePageIndicator();
   }, 200);
 });
+
+/* ---------- Anotações na partitura ----------
+   Cada traço guarda pontos em frações da largura da página, então aparece
+   no mesmo lugar em qualquer aparelho e em qualquer zoom. O desenho fica salvo
+   no aparelho na hora e sobe para o Supabase (arquivo .anot.json ao lado do PDF). */
+const D = { on: false, tool: 'pen', color: '#E53935', penSeen: false, cur: null, pans: new Map(), erase: null, raf: 0 };
+const HL_COLOR = '#FFD400', W_PEN = 0.0032, W_HL = 0.018;
+const r4 = v => Math.round(v * 1e4) / 1e4;
+const anotPathOf = m => m.pdf_path + '.anot.json';
+const anotQueue = new Map();
+let anotT = 0;
+
+function anotLocal(path) { try { return JSON.parse(localStorage.getItem(LS_ANOT + path)); } catch (e) { return null; } }
+function anotStoreLocal(path, data, pending) { try { localStorage.setItem(LS_ANOT + path, JSON.stringify({ d: data, pending, at: Date.now() })); } catch (e) {} }
+function setAnotStatus(st) {
+  const el = $('#vStat'); if (!el) return;
+  el.className = 'v-stat' + (st === 'offline' ? ' err' : '');
+  el.textContent = st === 'saving' ? 'Salvando…' : st === 'saved' ? 'Salvo' : st === 'offline' ? 'Salvo no aparelho' : '';
+}
+function anotChanged() {
+  const path = V.anotPath; if (!path) return;
+  anotStoreLocal(path, V.anot, true); anotQueue.set(path, V.anot);
+  setAnotStatus('saving'); clearTimeout(anotT); anotT = setTimeout(anotFlush, 1200);
+}
+async function anotFlush() {
+  clearTimeout(anotT);
+  if (!S.sb || !anotQueue.size) return;
+  for (const [path, data] of Array.from(anotQueue)) {
+    anotQueue.delete(path);
+    const json = JSON.stringify(data);
+    try {
+      const r = await S.sb.storage.from(BUCKET).upload(path, new Blob([json], { type: 'application/json' }), { upsert: true, contentType: 'application/json', cacheControl: '0' });
+      if (r.error) throw r.error;
+      const cur = anotLocal(path); if (cur && JSON.stringify(cur.d) === json) anotStoreLocal(path, data, false);
+      if (V.anotPath === path && !anotQueue.has(path)) setAnotStatus('saved');
+    } catch (e) {
+      if (!anotQueue.has(path)) anotQueue.set(path, data);
+      if (V.anotPath === path) setAnotStatus('offline');
+    }
+  }
+}
+async function anotLoad(m) {
+  const path = anotPathOf(m);
+  V.anotPath = path; V.undo = []; updUndo(); setAnotStatus('');
+  const loc = anotLocal(path);
+  V.anot = loc && loc.d && loc.d.pages ? loc.d : { v: 1, pages: {} };
+  repaintAnot();
+  if (loc && loc.pending) { anotQueue.set(path, V.anot); anotFlush(); return; }
+  if (!S.sb) return;
+  try {
+    const { data, error } = await S.sb.storage.from(BUCKET).download(path);
+    if (error || !data || V.anotPath !== path) return;
+    const j = JSON.parse(await data.text());
+    const l2 = anotLocal(path);
+    if (V.anotPath !== path || (l2 && l2.pending) || D.cur || !j || !j.pages) return;
+    V.anot = j; anotStoreLocal(path, j, false); repaintAnot();
+  } catch (e) {}
+}
+
+function drawStroke(ctx, s, W) {
+  const q = s.p; if (!q || q.length < 2) return;
+  ctx.save();
+  ctx.globalAlpha = s.k === 'h' ? 0.38 : 1;
+  ctx.strokeStyle = s.c; ctx.lineWidth = Math.max(1, s.w * W);
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(q[0] * W, q[1] * W);
+  if (q.length === 2) ctx.lineTo(q[0] * W + 0.01, q[1] * W);
+  else {
+    for (let i = 2; i < q.length - 2; i += 2) ctx.quadraticCurveTo(q[i] * W, q[i + 1] * W, (q[i] + q[i + 2]) / 2 * W, (q[i + 1] + q[i + 3]) / 2 * W);
+    ctx.lineTo(q[q.length - 2] * W, q[q.length - 1] * W);
+  }
+  ctx.stroke(); ctx.restore();
+}
+function ensureOverlay(p) {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  let w = Math.round(p.cssW * dpr), h = Math.round(p.cssW * p.h / p.w * dpr);
+  if (w * h > 8e6) { const k = Math.sqrt(8e6 / (w * h)); w = Math.round(w * k); h = Math.round(h * k); }
+  if (!p.ov) { p.ov = document.createElement('canvas'); p.ov.className = 'v-anot'; p.el.appendChild(p.ov); }
+  if (p.ov.width !== w || p.ov.height !== h) { p.ov.width = w; p.ov.height = h; }
+  return p.ov;
+}
+function paintPage(p) {
+  const ov = ensureOverlay(p), ctx = ov.getContext('2d');
+  ctx.clearRect(0, 0, ov.width, ov.height);
+  for (const s of (V.anot.pages[p.n] || [])) drawStroke(ctx, s, ov.width);
+  p.ovW = p.cssW;
+}
+function repaintAnot() { for (const p of V.pages) if (p.ov) paintPage(p); }
+function paintLive() {
+  D.raf = 0; const c = D.cur; if (!c || !c.p.ov) return;
+  const ov = c.p.ov, ctx = ov.getContext('2d');
+  ctx.clearRect(0, 0, ov.width, ov.height); ctx.drawImage(c.base, 0, 0); drawStroke(ctx, c.s, ov.width);
+}
+function pageAt(x, y) {
+  for (const p of V.pages) { const r = p.el.getBoundingClientRect(); if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return p; }
+  return null;
+}
+function normPt(p, x, y) { const r = p.el.getBoundingClientRect(); return [(x - r.left) / r.width, (y - r.top) / r.width]; }
+function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, l = dx * dx + dy * dy;
+  let t = l ? ((px - ax) * dx + (py - ay) * dy) / l : 0; t = Math.max(0, Math.min(1, t));
+  return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+function strokeNear(s, x, y, R) {
+  const q = s.p; if (q.length === 2) return Math.hypot(q[0] - x, q[1] - y) <= R;
+  for (let i = 0; i < q.length - 2; i += 2) if (segDist(x, y, q[i], q[i + 1], q[i + 2], q[i + 3]) <= R) return true;
+  return false;
+}
+function setDraw(on) {
+  if (D.on === on) return;
+  D.on = on;
+  $('#viewer').classList.toggle('drawing', on); vPages.classList.toggle('drawing', on);
+  if (on) {
+    showUI(); updTools(); updUndo();
+    const desk = matchMedia('(pointer: fine)').matches && !matchMedia('(any-pointer: coarse)').matches;
+    toast(desk ? 'Desenhe com o mouse. Role com a roda.' : D.penSeen ? 'Escreva com a caneta e role com o dedo.' : 'Desenhe na partitura. Para rolar, use dois dedos.');
+  } else {
+    if (D.cur) endStroke(true);
+    if (D.erase) endErase();
+    D.pans.clear(); anotFlush(); showUI();
+  }
+}
+function updTools() {
+  for (const b of $$('#viewer [data-act=vtool]')) {
+    const t = b.dataset.tool;
+    b.classList.toggle('on', t === D.tool && (t !== 'pen' || b.dataset.color === D.color));
+  }
+}
+function updUndo() { const b = $('#vUndo'); if (b) b.disabled = !V.undo.length; }
+function endStroke(keep) {
+  const c = D.cur; D.cur = null;
+  if (D.raf) { cancelAnimationFrame(D.raf); D.raf = 0; }
+  if (!c) return;
+  if (keep) {
+    const n = c.p.n, list = V.anot.pages[n] || (V.anot.pages[n] = []);
+    V.undo.push({ n, before: list.slice() }); list.push(c.s); anotChanged(); updUndo();
+  }
+  if (c.p.ov) paintPage(c.p);
+}
+function eraseAt(x, y) {
+  const er = D.erase, p = er.p, list = V.anot.pages[p.n];
+  if (!list || !list.length) return;
+  const [nx, ny] = normPt(p, x, y);
+  const keep = list.filter(s => !strokeNear(s, nx, ny, 0.014 + s.w / 2));
+  if (keep.length !== list.length) { V.anot.pages[p.n] = keep; er.changed = true; paintPage(p); }
+}
+function endErase() {
+  const er = D.erase; D.erase = null;
+  if (er && er.changed) { V.undo.push({ n: er.p.n, before: er.before }); anotChanged(); updUndo(); }
+}
+function undoAnot() {
+  const u = V.undo.pop(); if (!u) return;
+  V.anot.pages[u.n] = u.before;
+  const p = V.pages[u.n - 1]; if (p && p.ov) paintPage(p);
+  anotChanged(); updUndo();
+}
+function panAdd(id, x, y) { D.pans.set(id, { x, y }); }
+function onPDown(e) {
+  if (!D.on || !S.viewerOpen) return;
+  const pt = e.pointerType;
+  if (pt === 'pen' && !D.penSeen) { D.penSeen = true; toast('Caneta reconhecida: role a partitura com o dedo.'); }
+  if (pt === 'mouse' && e.button !== 0) return;
+  if (pt === 'touch') {
+    if (D.cur && D.cur.type === 'pen') return;            // palma da mão enquanto a caneta escreve
+    if (D.penSeen) { panAdd(e.pointerId, e.clientX, e.clientY); return; }
+    if (D.cur || D.erase || D.pans.size) {                // segundo dedo: vira rolagem
+      if (D.cur) { const c = D.cur; endStroke(c.s.p.length >= 12); panAdd(c.id, c.lx, c.ly); }
+      else if (D.erase) { const er = D.erase; endErase(); panAdd(er.id, er.lx, er.ly); }
+      panAdd(e.pointerId, e.clientX, e.clientY); return;
+    }
+  }
+  if (D.cur || D.erase) return;
+  const p = pageAt(e.clientX, e.clientY); if (!p) return;
+  e.preventDefault();
+  try { vPages.setPointerCapture(e.pointerId); } catch (err) {}
+  if (D.tool === 'erase') {
+    D.erase = { id: e.pointerId, p, before: (V.anot.pages[p.n] || []).slice(), changed: false, lx: e.clientX, ly: e.clientY };
+    eraseAt(e.clientX, e.clientY); return;
+  }
+  if (!p.ov || p.ovW !== p.cssW) paintPage(p);
+  const base = document.createElement('canvas'); base.width = p.ov.width; base.height = p.ov.height;
+  base.getContext('2d').drawImage(p.ov, 0, 0);
+  const [x, y] = normPt(p, e.clientX, e.clientY);
+  const s = D.tool === 'hl' ? { k: 'h', c: HL_COLOR, w: W_HL, p: [r4(x), r4(y)] } : { k: 'p', c: D.color, w: W_PEN, p: [r4(x), r4(y)] };
+  D.cur = { id: e.pointerId, type: pt, p, s, base, lx: e.clientX, ly: e.clientY };
+  if (!D.raf) D.raf = requestAnimationFrame(paintLive);
+}
+function onPMove(e) {
+  const pan = D.pans.get(e.pointerId);
+  if (pan) {
+    const n = D.pans.size;
+    vPages.scrollTop -= (e.clientY - pan.y) / n; vPages.scrollLeft -= (e.clientX - pan.x) / n;
+    pan.x = e.clientX; pan.y = e.clientY; return;
+  }
+  if (D.cur && e.pointerId === D.cur.id) {
+    e.preventDefault();
+    const c = D.cur, r = c.p.el.getBoundingClientRect(), q = c.s.p;
+    const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [];
+    for (const ev of (evs.length ? evs : [e])) {
+      const x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.width;
+      if (Math.hypot(x - q[q.length - 2], y - q[q.length - 1]) < 0.0012) continue;
+      q.push(r4(x), r4(y));
+    }
+    c.lx = e.clientX; c.ly = e.clientY;
+    if (!D.raf) D.raf = requestAnimationFrame(paintLive);
+  } else if (D.erase && e.pointerId === D.erase.id) {
+    e.preventDefault(); D.erase.lx = e.clientX; D.erase.ly = e.clientY; eraseAt(e.clientX, e.clientY);
+  }
+}
+function onPUp(e) {
+  if (D.pans.has(e.pointerId)) { D.pans.delete(e.pointerId); return; }
+  if (D.cur && e.pointerId === D.cur.id) endStroke(true);
+  else if (D.erase && e.pointerId === D.erase.id) endErase();
+}
+vPages.addEventListener('pointerdown', onPDown);
+vPages.addEventListener('pointermove', onPMove);
+vPages.addEventListener('pointerup', onPUp);
+vPages.addEventListener('pointercancel', onPUp);
+window.addEventListener('online', () => anotFlush());
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') anotFlush(); });
 
 /* ---------- Eventos globais ---------- */
 document.addEventListener('click', e => {
@@ -1472,6 +1742,10 @@ document.addEventListener('click', e => {
     case 'vzin': setZoom(1); break;
     case 'vzout': setZoom(-1); break;
     case 'vfs': fsEl() ? exitFs() : enterFs(); break;
+    case 'vdraw': setDraw(true); break;
+    case 'vdone': setDraw(false); break;
+    case 'vtool': D.tool = b.dataset.tool; if (b.dataset.color) D.color = b.dataset.color; updTools(); break;
+    case 'vundo': undoAnot(); break;
   }
   if (S.viewerOpen && b.closest('#viewer') && b.dataset.act !== 'vclose') showUI();
 });
@@ -1500,6 +1774,7 @@ document.addEventListener('change', e => {
   }
 });
 document.addEventListener('keydown', e => {
+  if (S.viewerOpen && D.on && (e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); undoAnot(); return; }
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const t = e.target, tag = (t.tagName || '').toLowerCase();
   if (tag === 'textarea' || (tag === 'input' && t.type !== 'range') || $('.backdrop')) return;
@@ -1538,10 +1813,17 @@ function init() {
     if (window.supabase) { try { S.sb = makeClient(S.cfg.url, S.cfg.key); } catch (e) { S.cfg = null; } }
     else setOffline(true);
   }
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(LS_ANOT) === 0) { const v = anotLocal(k.slice(LS_ANOT.length)); if (v && v.pending && v.d) anotQueue.set(k.slice(LS_ANOT.length), v.d); }
+    }
+  } catch (e) {}
   window.addEventListener('hashchange', onHash);
   route();
   if (S.sb) loadAll().then(ch => {
     if (ch) route(true);
+    anotFlush();
     if (viaLink) toast(S.offline ? 'Configuração salva, mas o Supabase não respondeu.' : 'Aparelho conectado ao Supabase', S.offline ? 'err' : '');
   });
 }
