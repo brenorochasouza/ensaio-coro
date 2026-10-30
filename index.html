@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ensaio">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Ensaio do Coro</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111016'/%3E%3Cpath d='M26 44V18l20-4v26' fill='none' stroke='%23E7B95E' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='44' r='6' fill='%23E7B95E'/%3E%3Ccircle cx='40' cy='40' r='6' fill='%23E7B95E'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1820,6 +1822,7 @@ function init() {
     }
   } catch (e) {}
   window.addEventListener('hashchange', onHash);
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
   route();
   if (S.sb) loadAll().then(ch => {
     if (ch) route(true);
